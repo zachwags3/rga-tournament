@@ -165,7 +165,17 @@ export default function ScoreEntry({ matchId }: Props) {
               {match.team1_player_names.join('\n& ')}
             </div>
           </div>
-          <div className="px-4 text-white/30 text-xl">vs</div>
+          <div className="px-3 flex flex-col items-center justify-center gap-0.5">
+            {scoredHoles === 0 ? (
+              <span className="text-white/30 text-sm font-light">vs</span>
+            ) : mpStatus.holesUp > 0 ? (
+              <span className="text-[#2d5a3d] text-2xl font-bold leading-none drop-shadow-sm">◀</span>
+            ) : mpStatus.holesUp < 0 ? (
+              <span className="text-[#c9a84c] text-2xl font-bold leading-none drop-shadow-sm">▶</span>
+            ) : (
+              <span className="text-white/50 text-xs font-semibold">A/S</span>
+            )}
+          </div>
           <div className="flex-1 text-center">
             <div className="text-[10px] text-white/50 mb-1">{team2?.name ?? 'Team 2'}</div>
             <div className="text-white font-bold text-sm leading-tight">
