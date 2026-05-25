@@ -262,7 +262,7 @@ export default function ScoreEntry({ matchId }: Props) {
 }
 
 function scoreInputClasses(score: number | null, par: number | null, isWinner: boolean, team: 'green' | 'gold'): string {
-  const base = 'w-full text-center text-lg font-bold py-2 outline-none transition-all disabled:opacity-60 focus:bg-white'
+  const base = 'w-12 text-center text-lg font-bold py-2 outline-none transition-all disabled:opacity-60 focus:bg-white'
 
   if (score && par && score > 0) {
     const diff = score - par
@@ -323,36 +323,40 @@ function HoleRow({
       </div>
 
       {/* Team 1 score */}
-      <input
-        type="number"
-        min="1"
-        max="15"
-        inputMode="numeric"
-        value={local.t1}
-        disabled={isReadOnly}
-        onChange={e => onChange(e.target.value, local.t2)}
-        onBlur={e => onBlur(e.target.value, local.t2)}
-        className={scoreInputClasses(t1Score, par, winner === 'team1', 'green')}
-        style={scoreInputStyle(t1Score, par)}
-        placeholder="—"
-      />
+      <div className="flex justify-center">
+        <input
+          type="number"
+          min="1"
+          max="15"
+          inputMode="numeric"
+          value={local.t1}
+          disabled={isReadOnly}
+          onChange={e => onChange(e.target.value, local.t2)}
+          onBlur={e => onBlur(e.target.value, local.t2)}
+          className={scoreInputClasses(t1Score, par, winner === 'team1', 'green')}
+          style={scoreInputStyle(t1Score, par)}
+          placeholder="—"
+        />
+      </div>
 
       <div className="text-center text-xs text-gray-300 font-light">v</div>
 
       {/* Team 2 score */}
-      <input
-        type="number"
-        min="1"
-        max="15"
-        inputMode="numeric"
-        value={local.t2}
-        disabled={isReadOnly}
-        onChange={e => onChange(local.t1, e.target.value)}
-        onBlur={e => onBlur(local.t1, e.target.value)}
-        className={scoreInputClasses(t2Score, par, winner === 'team2', 'gold')}
-        style={scoreInputStyle(t2Score, par)}
-        placeholder="—"
-      />
+      <div className="flex justify-center">
+        <input
+          type="number"
+          min="1"
+          max="15"
+          inputMode="numeric"
+          value={local.t2}
+          disabled={isReadOnly}
+          onChange={e => onChange(local.t1, e.target.value)}
+          onBlur={e => onBlur(local.t1, e.target.value)}
+          className={scoreInputClasses(t2Score, par, winner === 'team2', 'gold')}
+          style={scoreInputStyle(t2Score, par)}
+          placeholder="—"
+        />
+      </div>
 
       <div className="text-center text-base">{winnerIcon}</div>
     </div>
