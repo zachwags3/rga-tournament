@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import Leaderboard from '@/components/Leaderboard'
+import RefreshLogo from '@/components/RefreshLogo'
 
 export default function Home() {
   return (
@@ -19,13 +19,7 @@ export default function Home() {
             >
               Wags Log In
             </Link>
-            <Image
-              src="/rga-logo.png"
-              alt="RGA Logo"
-              width={52}
-              height={52}
-              className="drop-shadow-md"
-            />
+            <RefreshLogo />
           </div>
         </div>
       </header>
