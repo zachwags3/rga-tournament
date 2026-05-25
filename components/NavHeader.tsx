@@ -14,19 +14,21 @@ export default function NavHeader() {
         <div className="flex items-center gap-1">
           <Link
             href="/"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight ${
               pathname === '/' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            2026 Scoreboard
+            <div>2026</div>
+            <div>Scoreboard</div>
           </Link>
           <Link
             href="/history"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight ${
               pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            League History
+            <div>League</div>
+            <div>History</div>
           </Link>
         </div>
 
