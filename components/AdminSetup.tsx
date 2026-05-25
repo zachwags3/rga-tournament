@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Team, Player, Round, Match } from '@/types/database'
+import DraftBoard from '@/components/DraftBoard'
 
 // Pre-populated player list from the bylaws
 const PLAYER_NAMES = ['Charlie', 'Danny', 'Henry', 'Joe', 'Mike', 'Mitch', 'Nate', 'Sam', 'Sean', 'Zach']
@@ -15,7 +16,7 @@ export default function AdminSetup() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'teams' | 'pairings' | 'rounds'>('teams')
+  const [activeTab, setActiveTab] = useState<'teams' | 'draft' | 'pairings' | 'rounds'>('teams')
 
   const fetchAll = useCallback(async () => {
     const timeout = new Promise<null>(res => setTimeout(() => res(null), 5000))
@@ -105,15 +106,15 @@ export default function AdminSetup() {
     <div className="max-w-lg mx-auto px-4 pb-12">
       {/* Tabs */}
       <div className="flex bg-white rounded-xl border border-gray-200 p-1 mb-6">
-        {(['teams', 'pairings', 'rounds'] as const).map(tab => (
+        {(['teams', 'draft', 'pairings', 'rounds'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors capitalize ${
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors capitalize ${
               activeTab === tab ? 'bg-[#2d5a3d] text-white' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {tab === 'pairings' ? 'Pairings' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
@@ -223,6 +224,9 @@ export default function AdminSetup() {
           )}
         </div>
       )}
+
+      {/* DRAFT TAB */}
+      {activeTab === 'draft' && <DraftBoard />}
 
       {/* PAIRINGS TAB */}
       {activeTab === 'pairings' && (
