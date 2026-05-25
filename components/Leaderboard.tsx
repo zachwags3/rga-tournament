@@ -7,7 +7,7 @@ import { calcMatchPlayStatus } from '@/lib/matchplay'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
-type RoundWithMatches = Round & { matches: MatchWithScores[] }
+type RoundWithMatches = Round & { matches: MatchWithScores[]; courseName: string | null }
 
 export default function Leaderboard() {
   const [teams, setTeams] = useState<Team[]>([])
@@ -21,15 +21,17 @@ export default function Leaderboard() {
       supabase.from('rounds').select('*').order('sort_order'),
       supabase.from('matches').select('*').order('match_number'),
       supabase.from('hole_scores').select('*'),
+      supabase.from('courses').select('id,name,round_id'),
     ])
     const result = await Promise.race([fetches, timeout])
     if (!result) { setLoading(false); return }
-    const [teamsRes, roundsRes, matchesRes, scoresRes] = result
+    const [teamsRes, roundsRes, matchesRes, scoresRes, coursesRes] = result
 
     const teamsData: Team[] = teamsRes.data ?? []
     const roundsData: Round[] = roundsRes.data ?? []
     const matchesData: Match[] = matchesRes.data ?? []
     const scoresData: HoleScore[] = scoresRes.data ?? []
+    const coursesData: { id: string; name: string; round_id: string }[] = coursesRes.data ?? []
 
     const matchesWithScores: MatchWithScores[] = matchesData.map(m => ({
       ...m,
@@ -39,6 +41,7 @@ export default function Leaderboard() {
     const roundsWithMatches: RoundWithMatches[] = roundsData.map(r => ({
       ...r,
       matches: matchesWithScores.filter(m => m.round_id === r.id),
+      courseName: coursesData.find(c => c.round_id === r.id)?.name ?? null,
     }))
 
     setTeams(teamsData)
@@ -152,7 +155,12 @@ function RoundSection({ round, team1, team2 }: { round: RoundWithMatches; team1?
     <div className="mb-5">
       <div className="flex items-center justify-between mb-2 px-1">
         <div>
-          <h2 className="text-[#1a3a2a] font-bold text-base">{round.name}</h2>
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-[#1a3a2a] font-bold text-base">{round.name}</h2>
+            {round.courseName && (
+              <span className="text-gray-400 text-xs font-medium">@ {round.courseName}</span>
+            )}
+          </div>
           <p className="text-gray-400 text-xs">{round.holes} holes · {round.points_available} RGA pts available</p>
         </div>
         <div className="text-right">
