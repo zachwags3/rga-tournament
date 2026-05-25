@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -261,35 +261,36 @@ export default function ScoreEntry({ matchId }: Props) {
   )
 }
 
-function ScoreSymbol({ score, par }: { score: number | null; par: number | null }) {
-  if (!score || !par || score <= 0) return <div className="h-3" />
+function scoreInputClasses(score: number | null, par: number | null, isWinner: boolean, team: 'green' | 'gold'): string {
+  const base = 'w-full text-center text-lg font-bold py-2 outline-none transition-all disabled:opacity-60 focus:bg-white'
+
+  if (score && par && score > 0) {
+    const diff = score - par
+    if (diff <= -2) return `${base} rounded-full border-2 border-red-500 bg-white text-[#1a3a2a]`
+    if (diff === -1) return `${base} rounded-full border-2 border-red-500 bg-white text-[#1a3a2a]`
+    if (diff === 0)  return `${base} rounded-lg  border   border-gray-200 bg-gray-50 text-[#1a3a2a]`
+    if (diff === 1)  return `${base} rounded-[3px] border-2 border-gray-700 bg-gray-50 text-[#1a3a2a]`
+    /* double bogey+ */
+    return               `${base} rounded-[3px] border-2 border-gray-700 bg-gray-50 text-[#1a3a2a]`
+  }
+
+  // No par data — fall back to winner highlight
+  if (isWinner) {
+    return team === 'green'
+      ? `${base} rounded-lg border border-[#2d5a3d] bg-[#2d5a3d]/10 text-[#2d5a3d]`
+      : `${base} rounded-lg border border-[#c9a84c] bg-[#c9a84c]/10 text-[#c9a84c]`
+  }
+  return `${base} rounded-lg border border-gray-200 bg-gray-50 text-[#1a3a2a]`
+}
+
+function scoreInputStyle(score: number | null, par: number | null): React.CSSProperties {
+  if (!score || !par || score <= 0) return {}
   const diff = score - par
-  if (diff <= -2) return ( // Eagle: double circle
-    <div className="flex justify-center h-3 items-center">
-      <div className="w-3 h-3 rounded-full border border-red-500 flex items-center justify-center">
-        <div className="w-1.5 h-1.5 rounded-full border border-red-500" />
-      </div>
-    </div>
-  )
-  if (diff === -1) return ( // Birdie: circle
-    <div className="flex justify-center h-3 items-center">
-      <div className="w-3 h-3 rounded-full border border-red-500" />
-    </div>
-  )
-  if (diff === 0) return <div className="h-3" /> // Par: nothing
-  if (diff === 1) return ( // Bogey: square
-    <div className="flex justify-center h-3 items-center">
-      <div className="w-3 h-3 border border-gray-600 rounded-[1px]" />
-    </div>
-  )
-  // Double bogey+: nested squares
-  return (
-    <div className="flex justify-center h-3 items-center">
-      <div className="w-4 h-4 border border-gray-700 rounded-[1px] flex items-center justify-center">
-        <div className="w-2.5 h-2.5 border border-gray-700 rounded-[1px]" />
-      </div>
-    </div>
-  )
+  // Double circle for eagle: inner border + outer ring via box-shadow
+  if (diff <= -2) return { boxShadow: '0 0 0 3px white, 0 0 0 5px #ef4444' }
+  // Double square for double bogey+
+  if (diff >= 2)  return { boxShadow: '0 0 0 3px white, 0 0 0 5px #374151' }
+  return {}
 }
 
 function HoleRow({
@@ -314,54 +315,46 @@ function HoleRow({
   const t2Score = saved?.team2_score ?? null
 
   return (
-    <div className={`grid grid-cols-[2.5rem_1fr_1rem_1fr_2.5rem] gap-1.5 items-start px-3 py-2 rounded-xl border ${rowBg} transition-colors`}>
+    <div className={`grid grid-cols-[2.5rem_1fr_1rem_1fr_2.5rem] gap-1.5 items-center px-3 py-2.5 rounded-xl border ${rowBg} transition-colors`}>
       {/* Hole # + par */}
-      <div className="text-center pt-2">
-        <div className="text-sm font-bold text-gray-400">{hole}</div>
-        {par && <div className="text-[9px] text-gray-300 font-medium">p{par}</div>}
+      <div className="text-center">
+        <div className="text-sm font-bold text-gray-500">{hole}</div>
+        {par && <div className="text-xs text-gray-400 font-semibold">{par}</div>}
       </div>
 
       {/* Team 1 score */}
-      <div>
-        <input
-          type="number"
-          min="1"
-          max="15"
-          inputMode="numeric"
-          value={local.t1}
-          disabled={isReadOnly}
-          onChange={e => onChange(e.target.value, local.t2)}
-          onBlur={e => onBlur(e.target.value, local.t2)}
-          className={`w-full text-center text-lg font-bold py-2 rounded-lg border outline-none transition-colors
-            ${winner === 'team1' ? 'border-[#2d5a3d] bg-[#2d5a3d]/10 text-[#2d5a3d]' : 'border-gray-200 bg-gray-50 text-[#1a3a2a]'}
-            focus:border-[#2d5a3d] focus:bg-white disabled:opacity-60`}
-          placeholder="—"
-        />
-        <ScoreSymbol score={t1Score} par={par} />
-      </div>
+      <input
+        type="number"
+        min="1"
+        max="15"
+        inputMode="numeric"
+        value={local.t1}
+        disabled={isReadOnly}
+        onChange={e => onChange(e.target.value, local.t2)}
+        onBlur={e => onBlur(e.target.value, local.t2)}
+        className={scoreInputClasses(t1Score, par, winner === 'team1', 'green')}
+        style={scoreInputStyle(t1Score, par)}
+        placeholder="—"
+      />
 
-      <div className="text-center text-xs text-gray-300 font-light pt-3">v</div>
+      <div className="text-center text-xs text-gray-300 font-light">v</div>
 
       {/* Team 2 score */}
-      <div>
-        <input
-          type="number"
-          min="1"
-          max="15"
-          inputMode="numeric"
-          value={local.t2}
-          disabled={isReadOnly}
-          onChange={e => onChange(local.t1, e.target.value)}
-          onBlur={e => onBlur(local.t1, e.target.value)}
-          className={`w-full text-center text-lg font-bold py-2 rounded-lg border outline-none transition-colors
-            ${winner === 'team2' ? 'border-[#c9a84c] bg-[#c9a84c]/10 text-[#c9a84c]' : 'border-gray-200 bg-gray-50 text-[#1a3a2a]'}
-            focus:border-[#c9a84c] focus:bg-white disabled:opacity-60`}
-          placeholder="—"
-        />
-        <ScoreSymbol score={t2Score} par={par} />
-      </div>
+      <input
+        type="number"
+        min="1"
+        max="15"
+        inputMode="numeric"
+        value={local.t2}
+        disabled={isReadOnly}
+        onChange={e => onChange(local.t1, e.target.value)}
+        onBlur={e => onBlur(local.t1, e.target.value)}
+        className={scoreInputClasses(t2Score, par, winner === 'team2', 'gold')}
+        style={scoreInputStyle(t2Score, par)}
+        placeholder="—"
+      />
 
-      <div className="text-center text-base pt-2">{winnerIcon}</div>
+      <div className="text-center text-base">{winnerIcon}</div>
     </div>
   )
 }
