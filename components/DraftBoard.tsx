@@ -22,6 +22,15 @@ const SNAKE_ORDER = [
 
 type Phase = 'loading' | 'select-captains' | 'drafting' | 'name-teams' | 'saved'
 
+// Returns "1.01", "2.02" etc. for a given team/slot within a pick order
+function pickLabel(teamIdx: number, slot: number, order: typeof SNAKE_ORDER): string {
+  const overall = order.findIndex(p => p.team === teamIdx && p.slot === slot) + 1
+  if (overall === 0) return `${slot}`
+  const round = Math.ceil(overall / 2)
+  const pos = ((overall - 1) % 2) + 1
+  return `${round}.0${pos}`
+}
+
 export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void }) {
   const [phase, setPhase] = useState<Phase>('loading')
   const [captains, setCaptains] = useState<string[]>([])
@@ -365,7 +374,7 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
                         : player ? 'border-transparent bg-white shadow-sm'
                         : 'border-transparent bg-gray-100'
                       }`}>
-                        <span className={`text-xs font-bold w-5 shrink-0 ${player ? 'text-gray-400' : 'text-gray-300'}`}>{slot}</span>
+                        <span className={`text-xs font-bold w-8 shrink-0 ${player ? 'text-gray-400' : 'text-gray-300'}`}>{pickLabel(teamIdx, slot, effectiveOrder)}</span>
                         {player
                           ? <span className="font-semibold text-[#1a3a2a] text-sm">{player}</span>
                           : <span className="text-gray-300 text-sm">{isCurrentSlot ? 'picking...' : '—'}</span>
@@ -488,7 +497,7 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
                   const player = picks[teamIdx][slot - 1]
                   return (
                     <div key={slot} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white shadow-sm">
-                      <span className="text-xs font-bold w-5 shrink-0 text-gray-400">{slot}</span>
+                      <span className="text-xs font-bold w-8 shrink-0 text-gray-400">{pickLabel(teamIdx, slot, SNAKE_ORDER)}</span>
                       <span className="font-semibold text-[#1a3a2a] text-sm">{player ?? '—'}</span>
                     </div>
                   )
