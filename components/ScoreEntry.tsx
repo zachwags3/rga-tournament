@@ -200,11 +200,22 @@ export default function ScoreEntry({ matchId }: Props) {
       </div>
 
       {/* Column headers */}
-      <div className="grid grid-cols-[2.5rem_1fr_1rem_1fr_2.5rem] gap-1.5 mb-2 px-1">
-        <div className="text-center text-xs text-gray-400 font-medium">Hole</div>
-        <div className="text-center text-xs text-[#2d5a3d] font-semibold truncate">{match.team1_player_names[0]?.split(' ')[0]}</div>
+      <div className="grid grid-cols-[2.5rem_1fr_1rem_1fr_2.5rem] gap-1.5 mb-2 px-1 items-center">
+        <div className="text-center leading-tight">
+          <div className="text-xs text-gray-400 font-medium">Hole</div>
+          <div className="text-[10px] text-gray-300 font-medium">Par</div>
+        </div>
+        <div className="text-center leading-tight">
+          {match.team1_player_names.map((name, i) => (
+            <div key={i} className="text-xs text-[#2d5a3d] font-semibold">{name.split(' ')[0]}</div>
+          ))}
+        </div>
         <div />
-        <div className="text-center text-xs text-[#c9a84c] font-semibold truncate">{match.team2_player_names[0]?.split(' ')[0]}</div>
+        <div className="text-center leading-tight">
+          {match.team2_player_names.map((name, i) => (
+            <div key={i} className="text-xs text-[#c9a84c] font-semibold">{name.split(' ')[0]}</div>
+          ))}
+        </div>
         <div className="text-center text-xs text-gray-400 font-medium">Win</div>
       </div>
 
