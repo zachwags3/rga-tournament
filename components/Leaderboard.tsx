@@ -212,7 +212,20 @@ function MatchCard({ match, round, team1, team2 }: {
               {match.team1_player_names.join(' & ')}
             </div>
           </div>
-          <div className="px-3 text-gray-300 font-light text-lg">vs</div>
+          <div className="px-2 flex flex-col items-center justify-center gap-0.5">
+            {status.holesPlayed === 0 ? (
+              <span className="text-gray-300 font-light text-sm">vs</span>
+            ) : status.holesUp > 0 ? (
+              // Team 1 leading — arrow points left
+              <span className="text-[#2d5a3d] text-xl font-bold leading-none">◀</span>
+            ) : status.holesUp < 0 ? (
+              // Team 2 leading — arrow points right
+              <span className="text-[#c9a84c] text-xl font-bold leading-none">▶</span>
+            ) : (
+              // All square
+              <span className="text-gray-400 text-xs font-semibold tracking-tight">A/S</span>
+            )}
+          </div>
           <div className="flex-1 text-right">
             <div className="text-xs text-gray-400 mb-0.5" style={{ color: team2?.color }}>
               {team2?.name ?? 'Team 2'}
