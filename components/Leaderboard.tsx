@@ -1,0 +1,279 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { calcMatchPlayStatus } from '@/lib/matchplay'
+import type { Round, Match, HoleScore, Team } from '@/types/database'
+
+type MatchWithScores = Match & { hole_scores: HoleScore[] }
+type RoundWithMatches = Round & { matches: MatchWithScores[] }
+
+export default function Leaderboard() {
+  const [teams, setTeams] = useState<Team[]>([])
+  const [rounds, setRounds] = useState<RoundWithMatches[]>([])
+  const [loading, setLoading] = useState(true)
+
+  async function fetchAll() {
+    const timeout = new Promise<null>(res => setTimeout(() => res(null), 5000))
+    const fetches = Promise.all([
+      supabase.from('teams').select('*').order('created_at'),
+      supabase.from('rounds').select('*').order('sort_order'),
+      supabase.from('matches').select('*').order('match_number'),
+      supabase.from('hole_scores').select('*'),
+    ])
+    const result = await Promise.race([fetches, timeout])
+    if (!result) { setLoading(false); return }
+    const [teamsRes, roundsRes, matchesRes, scoresRes] = result
+
+    const teamsData: Team[] = teamsRes.data ?? []
+    const roundsData: Round[] = roundsRes.data ?? []
+    const matchesData: Match[] = matchesRes.data ?? []
+    const scoresData: HoleScore[] = scoresRes.data ?? []
+
+    const matchesWithScores: MatchWithScores[] = matchesData.map(m => ({
+      ...m,
+      hole_scores: scoresData.filter(s => s.match_id === m.id),
+    }))
+
+    const roundsWithMatches: RoundWithMatches[] = roundsData.map(r => ({
+      ...r,
+      matches: matchesWithScores.filter(m => m.round_id === r.id),
+    }))
+
+    setTeams(teamsData)
+    setRounds(roundsWithMatches)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchAll()
+
+    const channel = supabase
+      .channel('leaderboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hole_scores' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rounds' }, fetchAll)
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+
+  // Calculate overall RGA points per team
+  const teamPoints: Record<string, number> = {}
+  teams.forEach(t => { teamPoints[t.id] = 0 })
+  rounds.forEach(r =>
+    r.matches.forEach(m => {
+      if (m.status === 'complete') {
+        if (m.team1_id) teamPoints[m.team1_id] = (teamPoints[m.team1_id] ?? 0) + Number(m.rga_points_team1)
+        if (m.team2_id) teamPoints[m.team2_id] = (teamPoints[m.team2_id] ?? 0) + Number(m.rga_points_team2)
+      }
+    })
+  )
+
+  const team1 = teams[0]
+  const team2 = teams[1]
+  const pts1 = team1 ? (teamPoints[team1.id] ?? 0) : 0
+  const pts2 = team2 ? (teamPoints[team2.id] ?? 0) : 0
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="text-4xl mb-3">⛳</div>
+          <p className="text-[#2d5a3d] font-semibold">Loading leaderboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (teams.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <div className="text-center bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full">
+          <div className="text-5xl mb-4">⛳</div>
+          <h2 className="text-xl font-bold text-[#1a3a2a] mb-2">Tournament not set up yet</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            An admin needs to configure teams and pairings before scores can be tracked.
+          </p>
+          <Link href="/admin" className="inline-block bg-[#2d5a3d] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-[#1a3a2a] transition-colors">
+            Go to Admin Setup →
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 pb-12">
+      {/* Overall scoreboard */}
+      <div className="bg-[#1a3a2a] rounded-2xl overflow-hidden shadow-xl mb-6">
+        <div className="px-5 pt-5 pb-3 text-center">
+          <p className="text-[#c9a84c] text-xs font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
+          <p className="text-white/60 text-xs">June 27–28 · 12 RGA Points Total</p>
+        </div>
+        <div className="flex items-stretch">
+          {/* Team 1 */}
+          <div className={`flex-1 flex flex-col items-center justify-center py-6 ${pts1 > pts2 ? 'bg-[#c9a84c]/20' : ''}`}>
+            <div className="text-5xl font-bold text-white mb-1">{pts1 % 1 === 0 ? pts1 : pts1.toFixed(1)}</div>
+            <div className="text-[#c9a84c] text-sm font-semibold">{team1?.name ?? 'Team 1'}</div>
+            <div className="text-white/50 text-xs mt-1">Capt. {team1?.captain_name}</div>
+          </div>
+          {/* Divider */}
+          <div className="flex items-center justify-center px-4">
+            <div className="text-white/30 text-2xl font-light">–</div>
+          </div>
+          {/* Team 2 */}
+          <div className={`flex-1 flex flex-col items-center justify-center py-6 ${pts2 > pts1 ? 'bg-[#c9a84c]/20' : ''}`}>
+            <div className="text-5xl font-bold text-white mb-1">{pts2 % 1 === 0 ? pts2 : pts2.toFixed(1)}</div>
+            <div className="text-[#c9a84c] text-sm font-semibold">{team2?.name ?? 'Team 2'}</div>
+            <div className="text-white/50 text-xs mt-1">Capt. {team2?.captain_name}</div>
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-white/10 text-center">
+          <p className="text-white/40 text-xs">Need 6.5 pts to win</p>
+        </div>
+      </div>
+
+      {/* Rounds */}
+      {rounds.map(round => (
+        <RoundSection key={round.id} round={round} team1={team1} team2={team2} />
+      ))}
+    </div>
+  )
+}
+
+function RoundSection({ round, team1, team2 }: { round: RoundWithMatches; team1?: Team; team2?: Team }) {
+  const hasMatches = round.matches.length > 0
+  const roundPts1 = round.matches.reduce((sum, m) => sum + (m.status === 'complete' ? Number(m.rga_points_team1) : 0), 0)
+  const roundPts2 = round.matches.reduce((sum, m) => sum + (m.status === 'complete' ? Number(m.rga_points_team2) : 0), 0)
+
+  return (
+    <div className="mb-5">
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div>
+          <h2 className="text-[#1a3a2a] font-bold text-base">{round.name}</h2>
+          <p className="text-gray-400 text-xs">{round.holes} holes · {round.points_available} RGA pts available</p>
+        </div>
+        <div className="text-right">
+          <span className="text-sm font-semibold text-[#2d5a3d]">
+            {roundPts1.toFixed(roundPts1 % 1 === 0 ? 0 : 1)} – {roundPts2.toFixed(roundPts2 % 1 === 0 ? 0 : 1)}
+          </span>
+        </div>
+      </div>
+
+      {!hasMatches ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-4 text-center text-gray-400 text-sm">
+          Pairings not set yet
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {round.matches.map(match => (
+            <MatchCard key={match.id} match={match} round={round} team1={team1} team2={team2} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MatchCard({ match, round, team1, team2 }: {
+  match: MatchWithScores
+  round: Round
+  team1?: Team
+  team2?: Team
+}) {
+  const status = calcMatchPlayStatus(match.hole_scores, round.holes)
+  const isComplete = match.status === 'complete'
+
+  let statusColor = 'bg-gray-100 text-gray-500'
+  let statusDot = 'bg-gray-300'
+  if (match.status === 'in_progress') {
+    statusColor = 'bg-blue-50 text-blue-600'
+    statusDot = 'bg-blue-500 animate-pulse'
+  } else if (isComplete) {
+    statusColor = 'bg-green-50 text-green-700'
+    statusDot = 'bg-green-500'
+  }
+
+  const leadingTeam = status.holesUp > 0 ? team1 : status.holesUp < 0 ? team2 : null
+  const isAS = status.holesUp === 0 && status.holesPlayed > 0
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-4">
+        {/* Players */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex-1">
+            <div className="text-xs text-gray-400 mb-0.5" style={{ color: team1?.color }}>
+              {team1?.name ?? 'Team 1'}
+            </div>
+            <div className="font-semibold text-[#1a3a2a] text-sm leading-tight">
+              {match.team1_player_names.join(' & ')}
+            </div>
+          </div>
+          <div className="px-3 text-gray-300 font-light text-lg">vs</div>
+          <div className="flex-1 text-right">
+            <div className="text-xs text-gray-400 mb-0.5" style={{ color: team2?.color }}>
+              {team2?.name ?? 'Team 2'}
+            </div>
+            <div className="font-semibold text-[#1a3a2a] text-sm leading-tight">
+              {match.team2_player_names.join(' & ')}
+            </div>
+          </div>
+        </div>
+
+        {/* Status bar */}
+        <div className="flex items-center justify-between">
+          <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${statusColor}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
+            {match.status === 'pending' ? 'Not started' : match.status === 'in_progress' ? 'In progress' : 'Complete'}
+          </div>
+
+          {status.holesPlayed > 0 && (
+            <div className="text-right">
+              {isComplete || isAS ? (
+                <span className={`font-bold text-sm ${isAS ? 'text-gray-500' : leadingTeam ? 'text-[#2d5a3d]' : 'text-gray-500'}`}>
+                  {status.resultLabel}
+                </span>
+              ) : (
+                <div className="text-right">
+                  <span className="font-bold text-sm text-[#2d5a3d]">{status.resultLabel}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Hole progress bar */}
+        {status.holesPlayed > 0 && (
+          <div className="mt-3">
+            <div className="flex gap-px h-1.5 rounded-full overflow-hidden bg-gray-100">
+              {Array.from({ length: round.holes }).map((_, i) => {
+                const holeScore = match.hole_scores.find(h => h.hole_number === i + 1)
+                let color = 'bg-gray-200'
+                if (holeScore?.winner === 'team1') color = 'bg-[#2d5a3d]'
+                else if (holeScore?.winner === 'team2') color = 'bg-[#c9a84c]'
+                else if (holeScore?.winner === 'halved') color = 'bg-gray-400'
+                return <div key={i} className={`flex-1 ${color} transition-colors`} />
+              })}
+            </div>
+            <div className="flex justify-between mt-1 text-[10px] text-gray-400">
+              <span>{round.holes === 9 ? 'Hole 1' : 'Hole 1'}</span>
+              <span>{status.holesPlayed} / {round.holes} played</span>
+              <span>{round.holes === 9 ? 'Hole 9' : 'Hole 18'}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Score entry button */}
+      <Link
+        href={`/score/${match.id}`}
+        className="flex items-center justify-center gap-1 py-2.5 bg-[#f5f2eb] hover:bg-[#ede8dc] transition-colors border-t border-gray-100 text-sm font-medium text-[#2d5a3d]"
+      >
+        {match.status === 'pending' ? '▶ Start & Enter Scores' : match.status === 'in_progress' ? '✏️ Update Scores' : '📋 View Scorecard'}
+      </Link>
+    </div>
+  )
+}
