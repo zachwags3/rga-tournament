@@ -153,18 +153,16 @@ function RoundSection({ round, team1, team2 }: { round: RoundWithMatches; team1?
 
   return (
     <div className="mb-5">
-      <div className="flex items-center justify-between mb-2 px-1">
-        <div>
-          <div className="flex items-baseline gap-2">
-            <h2 className="text-[#1a3a2a] font-bold text-base">{round.name}</h2>
-            {round.courseName && (
-              <span className="text-gray-400 text-xs font-medium">@ {round.courseName}</span>
-            )}
-          </div>
-          <p className="text-gray-400 text-xs">{round.holes} holes · {round.points_available} RGA pts available</p>
+      <div className="flex items-start justify-between mb-2 px-1">
+        <div className="flex-1 min-w-0 mr-3">
+          <h2 className="text-[#1a3a2a] font-bold text-base">{round.name}</h2>
+          <p className="text-gray-400 text-xs">
+            {round.holes} holes · {round.points_available} RGA pts available
+            {round.courseName && <> · <span className="text-gray-400">@ {round.courseName}</span></>}
+          </p>
         </div>
-        <div className="text-right">
-          <span className="text-sm font-semibold text-[#2d5a3d]">
+        <div className="text-right shrink-0">
+          <span className="text-sm font-semibold text-[#2d5a3d] whitespace-nowrap">
             {roundPts1.toFixed(roundPts1 % 1 === 0 ? 0 : 1)} – {roundPts2.toFixed(roundPts2 % 1 === 0 ? 0 : 1)}
           </span>
         </div>
