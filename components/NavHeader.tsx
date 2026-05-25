@@ -30,6 +30,15 @@ export default function NavHeader() {
             <div>League</div>
             <div>History</div>
           </Link>
+          <Link
+            href="/stats"
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight ${
+              pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <div>Stats</div>
+            <div>Board</div>
+          </Link>
         </div>
 
         {/* Right side */}

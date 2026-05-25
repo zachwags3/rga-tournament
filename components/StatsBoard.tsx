@@ -1,0 +1,202 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+
+type Round  = { id: string; name: string; holes: number; format: string; sort_order: number }
+type Match  = { id: string; round_id: string; match_number: number; team1_id: string; team2_id: string; team1_player_names: string[]; team2_player_names: string[] }
+type HScore = { match_id: string; hole_number: number; team1_score: number | null; team2_score: number | null }
+type Team   = { id: string; name: string; color: string; captain_name: string }
+type Pars   = Record<number, number>
+
+interface RowStats {
+  label: string
+  color: string
+  f9: number | null
+  b9: number | null
+  total: number | null
+  pars: number
+  birdies: number
+  bogeys: number
+  doubles: number
+}
+
+function calcStats(
+  scores: { hole: number; score: number | null }[],
+  pars: Pars,
+  totalHoles: number,
+): Omit<RowStats, 'label' | 'color'> {
+  let f9 = 0, b9 = 0, parsCount = 0, birdies = 0, bogeys = 0, doubles = 0
+  let f9Count = 0, b9Count = 0
+
+  scores.forEach(({ hole, score }) => {
+    if (!score || score <= 0) return
+    if (hole <= 9) { f9 += score; f9Count++ }
+    else           { b9 += score; b9Count++ }
+    const par = pars[hole]
+    if (par) {
+      const d = score - par
+      if (d <= -1) birdies++
+      else if (d === 0) parsCount++
+      else if (d === 1) bogeys++
+      else doubles++
+    }
+  })
+
+  const hasAny = f9Count + b9Count > 0
+  return {
+    f9:     f9Count > 0 ? f9 : null,
+    b9:     totalHoles > 9 && b9Count > 0 ? b9 : null,
+    total:  hasAny ? f9 + b9 : null,
+    pars:   parsCount,
+    birdies,
+    bogeys,
+    doubles,
+  }
+}
+
+export default function StatsBoard() {
+  const [rounds,  setRounds]  = useState<Round[]>([])
+  const [matches, setMatches] = useState<Match[]>([])
+  const [scores,  setScores]  = useState<HScore[]>([])
+  const [teams,   setTeams]   = useState<Team[]>([])
+  const [pars,    setPars]    = useState<Record<string, Pars>>({}) // round_id -> hole->par
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      const [rRes, mRes, sRes, tRes, cRes, chRes] = await Promise.all([
+        supabase.from('rounds').select('*').order('sort_order'),
+        supabase.from('matches').select('*').order('match_number'),
+        supabase.from('hole_scores').select('*'),
+        supabase.from('teams').select('*').order('created_at'),
+        supabase.from('courses').select('id,round_id'),
+        supabase.from('course_holes').select('course_id,hole_number,par'),
+      ])
+      const roundsData: Round[]  = rRes.data ?? []
+      const coursesData          = cRes.data  ?? []
+      const holesData            = chRes.data ?? []
+
+      // Build pars map per round
+      const parsMap: Record<string, Pars> = {}
+      roundsData.forEach(r => {
+        const course = coursesData.find((c: { id: string; round_id: string }) => c.round_id === r.id)
+        if (!course) return
+        const hp: Pars = {}
+        holesData
+          .filter((h: { course_id: string; hole_number: number; par: number }) => h.course_id === course.id)
+          .forEach((h: { course_id: string; hole_number: number; par: number }) => { hp[h.hole_number] = h.par })
+        parsMap[r.id] = hp
+      })
+
+      setRounds(roundsData)
+      setMatches(mRes.data ?? [])
+      setScores(sRes.data ?? [])
+      setTeams(tRes.data ?? [])
+      setPars(parsMap)
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  if (loading) return <div className="p-8 text-center text-[#2d5a3d]">Loading stats...</div>
+  if (teams.length < 2) return <div className="p-8 text-center text-gray-400">No data yet.</div>
+
+  const team1 = teams[0]
+  const team2 = teams[1]
+
+  return (
+    <div className="space-y-6 pb-12">
+      {rounds.map(round => {
+        const roundMatches = matches
+          .filter(m => m.round_id === round.id)
+          .sort((a, b) => a.match_number - b.match_number)
+
+        if (roundMatches.length === 0) return null
+
+        const roundPars = pars[round.id] ?? {}
+        const isSingles = round.format === 'singles'
+        const show9Only = round.holes <= 9
+
+        // Build rows
+        const rows: RowStats[] = []
+
+        roundMatches.forEach(m => {
+          const matchScores = scores.filter(s => s.match_id === m.id)
+
+          // Team 1 side
+          const t1Color = m.team1_id === team1.id ? team1.color : team2.color
+          const t1Label = isSingles
+            ? m.team1_player_names[0]
+            : m.team1_player_names.join(' & ')
+          const t1Raw = matchScores.map(s => ({ hole: s.hole_number, score: s.team1_score }))
+          rows.push({ label: t1Label, color: t1Color, ...calcStats(t1Raw, roundPars, round.holes) })
+
+          // Team 2 side
+          const t2Color = m.team2_id === team1.id ? team1.color : team2.color
+          const t2Label = isSingles
+            ? m.team2_player_names[0]
+            : m.team2_player_names.join(' & ')
+          const t2Raw = matchScores.map(s => ({ hole: s.hole_number, score: s.team2_score }))
+          rows.push({ label: t2Label, color: t2Color, ...calcStats(t2Raw, roundPars, round.holes) })
+        })
+
+        // Sort by total (ascending, nulls last)
+        rows.sort((a, b) => {
+          if (a.total === null && b.total === null) return 0
+          if (a.total === null) return 1
+          if (b.total === null) return -1
+          return a.total - b.total
+        })
+
+        const n = (v: number | null) => v !== null ? String(v) : '—'
+
+        return (
+          <div key={round.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            {/* Round header */}
+            <div className="bg-[#1a3a2a] px-4 py-3">
+              <div className="text-white font-bold text-sm">{round.name}</div>
+              <div className="text-white/50 text-xs">{round.holes} holes</div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-500 whitespace-nowrap">
+                      {isSingles ? 'Player' : 'Pair'}
+                    </th>
+                    <th className="text-center px-2 py-2 font-semibold text-gray-500">F9</th>
+                    {!show9Only && <th className="text-center px-2 py-2 font-semibold text-gray-500">B9</th>}
+                    <th className="text-center px-2 py-2 font-semibold text-gray-500">Tot</th>
+                    <th className="text-center px-2 py-2 font-semibold text-gray-500">Par</th>
+                    <th className="text-center px-2 py-2 font-semibold text-gray-500">Bir</th>
+                    <th className="text-center px-2 py-2 font-semibold text-gray-500">Bog</th>
+                    <th className="text-center px-2 py-2 font-semibold text-gray-500">Dbl+</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, i) => (
+                    <tr key={i} className="border-b border-gray-50 last:border-0">
+                      <td className="px-3 py-2.5 font-semibold whitespace-nowrap" style={{ color: row.color }}>
+                        {row.label}
+                      </td>
+                      <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{n(row.f9)}</td>
+                      {!show9Only && <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{n(row.b9)}</td>}
+                      <td className="text-center px-2 py-2.5 font-bold"   style={{ color: row.color }}>{n(row.total)}</td>
+                      <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.pars   || '—'}</td>
+                      <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.birdies || '—'}</td>
+                      <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.bogeys  || '—'}</td>
+                      <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.doubles || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
