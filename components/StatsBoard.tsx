@@ -246,7 +246,7 @@ export default function StatsBoard() {
                     <th className="text-left px-2 py-2 font-semibold text-gray-500 whitespace-nowrap">
                       {isSingles ? 'Player' : 'Pair'}
                     </th>
-                    <th className="text-center px-1 py-2 font-semibold text-gray-500">Res</th>
+                    <th className="text-center px-1 py-2 font-semibold text-gray-500">W/L</th>
                     <th className="text-center px-1 py-2 font-semibold text-gray-500">F9</th>
                     {!show9Only && <th className="text-center px-1 py-2 font-semibold text-gray-500">B9</th>}
                     <th className="text-center px-1 py-2 font-semibold text-gray-500">Tot</th>
