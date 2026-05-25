@@ -38,7 +38,7 @@ export default function NavHeader() {
             href="/admin"
             className="text-white/50 text-xs hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10 whitespace-nowrap"
           >
-            Wags Log In
+            Admin Sign In
           </Link>
           <RefreshLogo />
         </div>
