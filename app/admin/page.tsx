@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import AdminSetup from '@/components/AdminSetup'
+import AdminAuth from '@/components/AdminAuth'
 
 export default function AdminPage() {
   return (
@@ -16,7 +17,9 @@ export default function AdminPage() {
         </div>
       </header>
       <main className="pt-5">
-        <AdminSetup />
+        <AdminAuth>
+          <AdminSetup />
+        </AdminAuth>
       </main>
     </div>
   )
