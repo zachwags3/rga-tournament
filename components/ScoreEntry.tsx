@@ -17,6 +17,7 @@ export default function ScoreEntry({ matchId }: Props) {
   const [teams, setTeams] = useState<Team[]>([])
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
   const [localScores, setLocalScores] = useState<Record<number, { t1: string; t2: string }>>({})
   const [pars, setPars] = useState<Record<number, number>>({}) // hole_number -> par
 
@@ -147,7 +148,8 @@ export default function ScoreEntry({ matchId }: Props) {
   const mpStatus = calcMatchPlayStatus(holeScores, round.holes)
 
   const scoredHoles = holeScores.filter(h => h.winner !== null).length
-  const isReadOnly = match.status === 'complete'
+  const isComplete = match.status === 'complete'
+  const isReadOnly = isComplete && !isEditing
 
   return (
     <div className="max-w-lg mx-auto px-4 pb-16">
@@ -185,9 +187,14 @@ export default function ScoreEntry({ matchId }: Props) {
         )}
       </div>
 
-      {isReadOnly && (
+      {isComplete && !isEditing && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 text-center text-sm text-green-700 font-medium">
           ✅ Match complete — viewing scorecard
+        </div>
+      )}
+      {isComplete && isEditing && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-center text-sm text-amber-700 font-medium">
+          ✏️ Editing scores — re-finalize when done
         </div>
       )}
 
@@ -240,31 +247,49 @@ export default function ScoreEntry({ matchId }: Props) {
         })}
       </div>
 
-      {/* Finalize button */}
-      {!isReadOnly && (
-        <div className="mt-6">
-          <button
-            onClick={finalizeMatch}
-            disabled={saving || scoredHoles === 0}
-            className="w-full bg-[#2d5a3d] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 hover:bg-[#1a3a2a] transition-colors shadow-lg"
-          >
-            {saving ? 'Saving...' : '🏁 Finalize Match & Record Points'}
-          </button>
-          {scoredHoles > 0 && (
-            <p className="text-center text-xs text-gray-400 mt-2">
-              {scoredHoles} of {round.holes} holes scored
-            </p>
-          )}
-        </div>
-      )}
+      {/* Finalize / Edit buttons */}
+      <div className="mt-6 space-y-3">
+        {/* Active scoring or re-editing: show finalize */}
+        {(!isComplete || isEditing) && (
+          <>
+            <button
+              onClick={finalizeMatch}
+              disabled={saving || scoredHoles === 0}
+              className="w-full bg-[#2d5a3d] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 hover:bg-[#1a3a2a] transition-colors shadow-lg"
+            >
+              {saving ? 'Saving...' : '🏁 Finalize Match & Record Points'}
+            </button>
+            {scoredHoles > 0 && (
+              <p className="text-center text-xs text-gray-400">
+                {scoredHoles} of {round.holes} holes scored
+              </p>
+            )}
+            {isEditing && (
+              <button
+                onClick={() => setIsEditing(false)}
+                className="w-full border border-gray-300 text-gray-500 py-3 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </>
+        )}
 
-      {isReadOnly && (
-        <div className="mt-6">
-          <Link href="/" className="block w-full text-center bg-[#1a3a2a] text-white py-4 rounded-xl font-bold text-base">
-            ← Back to Leaderboard
-          </Link>
-        </div>
-      )}
+        {/* Complete and not editing: show Edit + Back */}
+        {isComplete && !isEditing && (
+          <>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="w-full border-2 border-[#2d5a3d] text-[#2d5a3d] py-3.5 rounded-xl font-bold text-base hover:bg-[#2d5a3d]/5 transition-colors"
+            >
+              ✏️ Edit Scores
+            </button>
+            <Link href="/" className="block w-full text-center bg-[#1a3a2a] text-white py-4 rounded-xl font-bold text-base">
+              ← Back to Leaderboard
+            </Link>
+          </>
+        )}
+      </div>
     </div>
   )
 }
