@@ -107,15 +107,14 @@ export default function DraftBoard() {
     if (teams.length < 2) return
     setSaving(true)
 
-    // Delete existing non-captain players
+    // 1. Save players
     await supabase.from('players').delete().eq('is_captain', false)
-
-    const insertions = []
+    const playerInsertions = []
     for (let teamIdx = 0; teamIdx < 2; teamIdx++) {
       for (let slot = 0; slot < 5; slot++) {
         const name = picks[teamIdx][slot]
         if (name) {
-          insertions.push({
+          playerInsertions.push({
             name,
             team_id: teams[teamIdx].id,
             pick_number: slot + 1,
@@ -124,9 +123,61 @@ export default function DraftBoard() {
         }
       }
     }
+    if (playerInsertions.length > 0) {
+      await supabase.from('players').insert(playerInsertions)
+    }
 
-    if (insertions.length > 0) {
-      await supabase.from('players').insert(insertions)
+    // 2. Auto-generate Sunday singles pairings
+    const roundRes = await supabase.from('rounds').select('*').eq('format', 'singles').single()
+    if (roundRes.data) {
+      const sundayRound = roundRes.data
+
+      // Delete existing Sunday matches that are still pending (don't overwrite in-progress/complete)
+      await supabase.from('matches')
+        .delete()
+        .eq('round_id', sundayRound.id)
+        .eq('status', 'pending')
+
+      const captains0 = teams[0] // Jack's team
+      const captains1 = teams[1] // Pat's team
+
+      const matchInsertions = []
+
+      // Pick 1-5 matchups
+      for (let slot = 0; slot < 5; slot++) {
+        const p0 = picks[0][slot] // team 0 pick at slot
+        const p1 = picks[1][slot] // team 1 pick at slot
+        if (p0 && p1) {
+          matchInsertions.push({
+            round_id: sundayRound.id,
+            match_number: slot + 1,
+            team1_player_names: [p0],
+            team2_player_names: [p1],
+            team1_id: captains0.id,
+            team2_id: captains1.id,
+            status: 'pending' as const,
+            rga_points_team1: 0,
+            rga_points_team2: 0,
+          })
+        }
+      }
+
+      // Captain anchor match (always match 6)
+      matchInsertions.push({
+        round_id: sundayRound.id,
+        match_number: 6,
+        team1_player_names: [captains0.captain_name],
+        team2_player_names: [captains1.captain_name],
+        team1_id: captains0.id,
+        team2_id: captains1.id,
+        status: 'pending' as const,
+        rga_points_team1: 0,
+        rga_points_team2: 0,
+      })
+
+      if (matchInsertions.length > 0) {
+        await supabase.from('matches').insert(matchInsertions)
+      }
     }
 
     await fetchData()
@@ -279,12 +330,12 @@ export default function DraftBoard() {
           disabled={saving || picks.flat().filter(Boolean).length === 0}
           className="flex-2 bg-[#2d5a3d] text-white px-6 py-3 rounded-xl font-bold text-sm disabled:opacity-40 hover:bg-[#1a3a2a] transition-colors"
         >
-          {saving ? 'Saving...' : saved ? '✅ Saved!' : '💾 Save Draft'}
+          {saving ? 'Saving...' : saved ? '✅ Saved!' : '💾 Save Draft & Set Sunday Pairings'}
         </button>
       </div>
 
       <p className="text-center text-xs text-gray-400 mt-3">
-        Save locks picks into Supabase and enables Sunday auto-fill
+        Saving auto-generates all 6 Sunday singles matchups by pick number
       </p>
     </div>
   )
