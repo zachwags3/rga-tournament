@@ -200,17 +200,14 @@ export default function ScoreEntry({ matchId }: Props) {
       </div>
 
       {/* Column headers */}
-      <div className="grid grid-cols-[2.5rem_1fr_1rem_1fr_2.5rem] gap-1.5 mb-2 px-1 items-center">
-        <div className="text-center leading-tight">
-          <div className="text-xs text-gray-400 font-medium">Hole</div>
-          <div className="text-[10px] text-gray-300 font-medium">Par</div>
-        </div>
+      <div className="grid grid-cols-[2rem_2rem_1fr_1fr_2.5rem] gap-1.5 mb-2 px-1 items-center">
+        <div className="text-center text-xs text-gray-400 font-medium">Hole</div>
+        <div className="text-center text-xs text-gray-400 font-medium">Par</div>
         <div className="text-center leading-tight">
           {match.team1_player_names.map((name, i) => (
             <div key={i} className="text-xs text-[#2d5a3d] font-semibold">{name.split(' ')[0]}</div>
           ))}
         </div>
-        <div />
         <div className="text-center leading-tight">
           {match.team2_player_names.map((name, i) => (
             <div key={i} className="text-xs text-[#c9a84c] font-semibold">{name.split(' ')[0]}</div>
@@ -326,12 +323,12 @@ function HoleRow({
   const t2Score = saved?.team2_score ?? null
 
   return (
-    <div className={`grid grid-cols-[2.5rem_1fr_1rem_1fr_2.5rem] gap-1.5 items-center px-3 py-2.5 rounded-xl border ${rowBg} transition-colors`}>
-      {/* Hole # + par */}
-      <div className="text-center">
-        <div className="text-sm font-bold text-gray-500">{hole}</div>
-        {par && <div className="text-xs text-gray-400 font-semibold">{par}</div>}
-      </div>
+    <div className={`grid grid-cols-[2rem_2rem_1fr_1fr_2.5rem] gap-1.5 items-center px-3 py-2.5 rounded-xl border ${rowBg} transition-colors`}>
+      {/* Hole # */}
+      <div className="text-center text-sm font-bold text-gray-500">{hole}</div>
+
+      {/* Par */}
+      <div className="text-center text-sm font-semibold text-gray-400">{par ?? '—'}</div>
 
       {/* Team 1 score */}
       <div className="flex justify-center">
@@ -349,8 +346,6 @@ function HoleRow({
           placeholder="—"
         />
       </div>
-
-      <div className="text-center text-xs text-gray-300 font-light">v</div>
 
       {/* Team 2 score */}
       <div className="flex justify-center">
