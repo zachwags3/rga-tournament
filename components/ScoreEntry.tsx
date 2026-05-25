@@ -247,6 +247,31 @@ export default function ScoreEntry({ matchId }: Props) {
         })}
       </div>
 
+      {/* Totals row */}
+      {(() => {
+        const totalPar = Object.values(pars).reduce((s, p) => s + p, 0)
+        const t1Total = holeScores.reduce((s, h) => s + (h.team1_score ?? 0), 0)
+        const t2Total = holeScores.reduce((s, h) => s + (h.team2_score ?? 0), 0)
+        if (t1Total === 0 && t2Total === 0) return null
+        return (
+          <div className="grid grid-cols-[2rem_2rem_1fr_1fr_2.5rem] gap-1.5 items-center px-3 py-2.5 mt-1 rounded-xl border border-gray-200 bg-gray-50">
+            <div className="text-center text-sm font-bold text-gray-600">T</div>
+            <div className="text-center text-sm font-semibold text-gray-500">{totalPar || '—'}</div>
+            <div className="flex justify-center">
+              <div className="w-12 text-center text-lg font-bold py-2 rounded-lg border border-gray-300 bg-white text-[#1a3a2a]">
+                {t1Total}
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <div className="w-12 text-center text-lg font-bold py-2 rounded-lg border border-gray-300 bg-white text-[#1a3a2a]">
+                {t2Total}
+              </div>
+            </div>
+            <div />
+          </div>
+        )
+      })()}
+
       {/* Finalize / Edit buttons */}
       <div className="mt-6 space-y-3">
         {/* Active scoring or re-editing: show finalize */}
