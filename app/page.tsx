@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import Leaderboard from '@/components/Leaderboard'
 
 export default function Home() {
@@ -6,17 +7,26 @@ export default function Home() {
     <div className="min-h-screen" style={{ background: 'var(--cream)' }}>
       {/* Header */}
       <header className="bg-[#1a3a2a] sticky top-0 z-10 shadow-md">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between">
           <div>
             <h1 className="text-white font-bold text-lg leading-none">⛳ RGA 2026</h1>
             <p className="text-[#c9a84c] text-xs mt-0.5">Live Leaderboard</p>
           </div>
-          <Link
-            href="/admin"
-            className="text-white/50 text-xs hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
-          >
-            Admin
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin"
+              className="text-white/50 text-xs hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+            >
+              Wags Log In
+            </Link>
+            <Image
+              src="/rga-logo.png"
+              alt="RGA Logo"
+              width={52}
+              height={52}
+              className="drop-shadow-md"
+            />
+          </div>
         </div>
       </header>
 
