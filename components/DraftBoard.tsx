@@ -20,17 +20,19 @@ const SNAKE_ORDER = [
   { team: 1, slot: 5 },
 ]
 
-type Phase = 'loading' | 'select-captains' | 'drafting' | 'saved'
+type Phase = 'loading' | 'select-captains' | 'drafting' | 'name-teams' | 'saved'
 
 export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void }) {
   const [phase, setPhase] = useState<Phase>('loading')
   const [captains, setCaptains] = useState<string[]>([])
-  const [cap1First, setCap1First] = useState(true) // which captain picks 1st overall
+  const [cap1First, setCap1First] = useState(true)
   const [picks, setPicks] = useState<(string | null)[][]>([
     [null, null, null, null, null],
     [null, null, null, null, null],
   ])
   const [teams, setTeams] = useState<Team[]>([])
+  const [teamName0, setTeamName0] = useState('')
+  const [teamName1, setTeamName1] = useState('')
   const [saving, setSaving] = useState(false)
 
   const loadExisting = useCallback(async () => {
@@ -47,8 +49,9 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
     const playersData = p.data ?? []
 
     if (teamsData.length >= 2 && playersData.length > 0) {
-      // Draft already saved — reconstruct board
       setTeams(teamsData)
+      setTeamName0(teamsData[0].name)
+      setTeamName1(teamsData[1].name)
       const newPicks: (string | null)[][] = [
         [null, null, null, null, null],
         [null, null, null, null, null],
@@ -199,6 +202,25 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
       await supabase.from('matches').insert(matchInsertions)
     }
 
+    // Pre-fill name inputs with defaults
+    setTeamName0(`Team ${cap0}`)
+    setTeamName1(`Team ${cap1}`)
+    setSaving(false)
+    setPhase('name-teams')
+  }
+
+  async function saveTeamNames() {
+    if (teams.length < 2) return
+    setSaving(true)
+    await Promise.all([
+      supabase.from('teams').update({ name: teamName0 || `Team ${teams[0].captain_name}` }).eq('id', teams[0].id),
+      supabase.from('teams').update({ name: teamName1 || `Team ${teams[1].captain_name}` }).eq('id', teams[1].id),
+    ])
+    const updated = [
+      { ...teams[0], name: teamName0 || teams[0].name },
+      { ...teams[1], name: teamName1 || teams[1].name },
+    ]
+    setTeams(updated)
     setSaving(false)
     setPhase('saved')
     onDraftSaved?.()
@@ -391,7 +413,57 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
     )
   }
 
-  // ── PHASE 3: Saved / View ─────────────────────────────────
+  // ── PHASE 3: Name Your Teams ─────────────────────────────
+  if (phase === 'name-teams') {
+    const cap0 = cap1First ? captains[0] : captains[1]
+    const cap1 = cap1First ? captains[1] : captains[0]
+    return (
+      <div className="max-w-lg mx-auto px-4 pb-12">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
+          <div className="text-center mb-5">
+            <div className="text-3xl mb-2">🏆</div>
+            <h2 className="font-bold text-[#1a3a2a] text-lg">Name Your Teams</h2>
+            <p className="text-gray-400 text-xs mt-1">These names show on the leaderboard. Leave blank to use default.</p>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold text-[#2d5a3d] block mb-1">
+                👑 {cap0}&apos;s Team (Green)
+              </label>
+              <input
+                type="text"
+                value={teamName0}
+                onChange={e => setTeamName0(e.target.value)}
+                placeholder={`Team ${cap0}`}
+                className="w-full border-2 border-[#2d5a3d]/30 focus:border-[#2d5a3d] rounded-xl px-4 py-3 text-sm outline-none font-semibold"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#c9a84c] block mb-1">
+                👑 {cap1}&apos;s Team (Gold)
+              </label>
+              <input
+                type="text"
+                value={teamName1}
+                onChange={e => setTeamName1(e.target.value)}
+                placeholder={`Team ${cap1}`}
+                className="w-full border-2 border-[#c9a84c]/30 focus:border-[#c9a84c] rounded-xl px-4 py-3 text-sm outline-none font-semibold"
+              />
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={saveTeamNames}
+          disabled={saving}
+          className="w-full bg-[#2d5a3d] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 hover:bg-[#1a3a2a] transition-colors shadow-lg"
+        >
+          {saving ? 'Saving...' : '✅ Save Team Names & Finish Draft'}
+        </button>
+      </div>
+    )
+  }
+
+  // ── PHASE 4: Saved / View ─────────────────────────────────
   const team0 = teams[0]
   const team1 = teams[1]
 
