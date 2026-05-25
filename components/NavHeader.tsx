@@ -36,8 +36,8 @@ export default function NavHeader() {
               pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            <div>Stats</div>
-            <div>Board</div>
+            <div>Leader</div>
+            <div>board</div>
           </Link>
         </div>
 
