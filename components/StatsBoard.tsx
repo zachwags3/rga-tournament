@@ -21,6 +21,18 @@ interface RowStats {
   doubles: number
 }
 
+interface TeamTotal {
+  label: string
+  color: string
+  f9: number | null
+  b9: number | null
+  total: number | null
+  pars: number
+  birdies: number
+  bogeys: number
+  doubles: number
+}
+
 function calcStats(
   scores: { hole: number; score: number | null }[],
   pars: Pars,
@@ -49,6 +61,34 @@ function calcStats(
     b9:     totalHoles > 9 && b9Count > 0 ? b9 : null,
     total:  hasAny ? f9 + b9 : null,
     pars:   parsCount,
+    birdies,
+    bogeys,
+    doubles,
+  }
+}
+
+function sumRows(rows: RowStats[], color: string, label: string): TeamTotal {
+  const teamRows = rows.filter(r => r.color === color)
+  let f9 = 0, b9 = 0, total = 0, pars = 0, birdies = 0, bogeys = 0, doubles = 0
+  let hasF9 = false, hasB9 = false, hasTotal = false
+
+  teamRows.forEach(r => {
+    if (r.f9    !== null) { f9    += r.f9;    hasF9    = true }
+    if (r.b9    !== null) { b9    += r.b9;    hasB9    = true }
+    if (r.total !== null) { total += r.total; hasTotal = true }
+    pars    += r.pars
+    birdies += r.birdies
+    bogeys  += r.bogeys
+    doubles += r.doubles
+  })
+
+  return {
+    label,
+    color,
+    f9:    hasF9    ? f9    : null,
+    b9:    hasB9    ? b9    : null,
+    total: hasTotal ? total : null,
+    pars,
     birdies,
     bogeys,
     doubles,
@@ -149,7 +189,28 @@ export default function StatsBoard() {
           return a.total - b.total
         })
 
+        // Team totals
+        const totals: TeamTotal[] = [
+          sumRows(rows, team1.color, `${team1.name} Total`),
+          sumRows(rows, team2.color, `${team2.name} Total`),
+        ]
+
         const n = (v: number | null) => v !== null ? String(v) : '—'
+
+        const totalRow = (t: TeamTotal, i: number) => (
+          <tr key={`total-${i}`} className="border-t-2 border-gray-200 bg-gray-50">
+            <td className="px-3 py-2.5 font-bold whitespace-nowrap" style={{ color: t.color }}>
+              {t.label}
+            </td>
+            <td className="text-center px-2 py-2.5 font-bold" style={{ color: t.color }}>{n(t.f9)}</td>
+            {!show9Only && <td className="text-center px-2 py-2.5 font-bold" style={{ color: t.color }}>{n(t.b9)}</td>}
+            <td className="text-center px-2 py-2.5 font-bold" style={{ color: t.color }}>{n(t.total)}</td>
+            <td className="text-center px-2 py-2.5 font-bold" style={{ color: t.color }}>{t.pars    || '—'}</td>
+            <td className="text-center px-2 py-2.5 font-bold" style={{ color: t.color }}>{t.birdies || '—'}</td>
+            <td className="text-center px-2 py-2.5 font-bold" style={{ color: t.color }}>{t.bogeys  || '—'}</td>
+            <td className="text-center px-2 py-2.5 font-bold" style={{ color: t.color }}>{t.doubles || '—'}</td>
+          </tr>
+        )
 
         return (
           <div key={round.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
@@ -185,12 +246,13 @@ export default function StatsBoard() {
                       <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{n(row.f9)}</td>
                       {!show9Only && <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{n(row.b9)}</td>}
                       <td className="text-center px-2 py-2.5 font-bold"   style={{ color: row.color }}>{n(row.total)}</td>
-                      <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.pars   || '—'}</td>
+                      <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.pars    || '—'}</td>
                       <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.birdies || '—'}</td>
                       <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.bogeys  || '—'}</td>
                       <td className="text-center px-2 py-2.5 font-medium" style={{ color: row.color }}>{row.doubles || '—'}</td>
                     </tr>
                   ))}
+                  {totals.map((t, i) => totalRow(t, i))}
                 </tbody>
               </table>
             </div>
