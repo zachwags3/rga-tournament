@@ -181,18 +181,13 @@ function PairingsTab({
     )
   }
 
-  // Only show Saturday rounds in the pairing form (Sunday is auto-set by draft)
-  const saturdayRounds = rounds.filter(r => r.format !== 'singles')
-
   return (
     <div className="space-y-4">
-      <div className="bg-[#1a3a2a]/5 rounded-xl p-3 text-center text-xs text-gray-500">
-        Sunday singles are auto-set from the draft. Set pairings below for Saturday only.
-      </div>
-
       {/* Add pairing form */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <h2 className="font-bold text-[#1a3a2a] mb-3">Add Saturday Pairing</h2>
+        <h2 className="font-bold text-[#1a3a2a] mb-3">
+          {isSingles ? 'Add Sunday Singles Matchup' : 'Add Saturday Pairing'}
+        </h2>
 
         <select
           value={form.roundId}
@@ -200,7 +195,7 @@ function PairingsTab({
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm mb-3 outline-none focus:border-[#2d5a3d]"
         >
           <option value="">Select Round</option>
-          {saturdayRounds.map(r => (
+          {rounds.map(r => (
             <option key={r.id} value={r.id}>{r.name}</option>
           ))}
         </select>
@@ -212,49 +207,53 @@ function PairingsTab({
                 <div className="text-xs font-semibold mb-1" style={{ color: team1?.color }}>{team1?.name}</div>
                 <select value={form.team1p1} onChange={e => setForm(p => ({ ...p, team1p1: e.target.value }))}
                   className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d] mb-1">
-                  <option value="">Player 1</option>
+                  <option value="">{isSingles ? 'Player' : 'Player 1'}</option>
                   {team1Players.map(p => (
                     <option key={p.id} value={p.name}>
                       {p.name}{p.is_captain ? ' (C)' : ` #${p.pick_number}`}
                     </option>
                   ))}
                 </select>
-                <select value={form.team1p2} onChange={e => setForm(p => ({ ...p, team1p2: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]">
-                  <option value="">Player 2</option>
-                  {team1Players.filter(p => p.name !== form.team1p1).map(p => (
-                    <option key={p.id} value={p.name}>
-                      {p.name}{p.is_captain ? ' (C)' : ` #${p.pick_number}`}
-                    </option>
-                  ))}
-                </select>
+                {!isSingles && (
+                  <select value={form.team1p2} onChange={e => setForm(p => ({ ...p, team1p2: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]">
+                    <option value="">Player 2</option>
+                    {team1Players.filter(p => p.name !== form.team1p1).map(p => (
+                      <option key={p.id} value={p.name}>
+                        {p.name}{p.is_captain ? ' (C)' : ` #${p.pick_number}`}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div>
                 <div className="text-xs font-semibold mb-1" style={{ color: team2?.color }}>{team2?.name}</div>
                 <select value={form.team2p1} onChange={e => setForm(p => ({ ...p, team2p1: e.target.value }))}
                   className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d] mb-1">
-                  <option value="">Player 1</option>
+                  <option value="">{isSingles ? 'Player' : 'Player 1'}</option>
                   {team2Players.map(p => (
                     <option key={p.id} value={p.name}>
                       {p.name}{p.is_captain ? ' (C)' : ` #${p.pick_number}`}
                     </option>
                   ))}
                 </select>
-                <select value={form.team2p2} onChange={e => setForm(p => ({ ...p, team2p2: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]">
-                  <option value="">Player 2</option>
-                  {team2Players.filter(p => p.name !== form.team2p1).map(p => (
-                    <option key={p.id} value={p.name}>
-                      {p.name}{p.is_captain ? ' (C)' : ` #${p.pick_number}`}
-                    </option>
-                  ))}
-                </select>
+                {!isSingles && (
+                  <select value={form.team2p2} onChange={e => setForm(p => ({ ...p, team2p2: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]">
+                    <option value="">Player 2</option>
+                    {team2Players.filter(p => p.name !== form.team2p1).map(p => (
+                      <option key={p.id} value={p.name}>
+                        {p.name}{p.is_captain ? ' (C)' : ` #${p.pick_number}`}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
             <button
               onClick={addMatch}
-              disabled={saving || !form.team1p1 || !form.team2p1 || !form.team1p2 || !form.team2p2}
+              disabled={saving || !form.team1p1 || !form.team2p1 || (!isSingles && (!form.team1p2 || !form.team2p2))}
               className="w-full bg-[#2d5a3d] text-white py-2.5 rounded-xl font-bold text-sm disabled:opacity-40"
             >
               {saving ? 'Adding...' : '+ Add Match'}
@@ -278,7 +277,7 @@ function PairingsTab({
                     <span className="text-gray-400 mx-2">vs</span>
                     <span className="font-semibold">{m.team2_player_names.join(' & ')}</span>
                   </div>
-                  {m.status === 'pending' && round.format !== 'singles' && (
+                  {m.status === 'pending' && (
                     <button onClick={() => deleteMatch(m.id)} className="text-red-400 hover:text-red-600 text-xs ml-2 shrink-0">
                       Remove
                     </button>
