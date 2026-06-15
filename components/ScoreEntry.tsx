@@ -294,7 +294,7 @@ export default function ScoreEntry({ matchId }: Props) {
             <button
               onClick={finalizeMatch}
               disabled={saving || scoredHoles === 0}
-              className="w-full bg-[#2d5a3d] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 hover:bg-[#1a3a2a] transition-colors shadow-lg"
+              className="w-full bg-[#091540] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 hover:bg-[#060e2e] transition-colors shadow-lg"
             >
               {saving ? 'Saving...' : '🏁 Finalize Match & Record Points'}
             </button>
@@ -319,11 +319,11 @@ export default function ScoreEntry({ matchId }: Props) {
           <>
             <button
               onClick={() => setIsEditing(true)}
-              className="w-full border-2 border-[#2d5a3d] text-[#2d5a3d] py-3.5 rounded-xl font-bold text-base hover:bg-[#2d5a3d]/5 transition-colors"
+              className="w-full border-2 border-[#091540] text-[#091540] py-3.5 rounded-xl font-bold text-base hover:bg-[#091540]/5 transition-colors"
             >
               ✏️ Edit Scores
             </button>
-            <Link href="/" className="block w-full text-center bg-[#1a3a2a] text-white py-4 rounded-xl font-bold text-base">
+            <Link href="/" className="block w-full text-center bg-[#091540] text-white py-4 rounded-xl font-bold text-base">
               ← Back to Leaderboard
             </Link>
           </>

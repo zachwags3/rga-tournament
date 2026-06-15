@@ -233,7 +233,7 @@ export default function StatsBoard() {
         return (
           <div key={round.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
             {/* Round header */}
-            <div className="bg-[#1a3a2a] px-4 py-3">
+            <div className="bg-[#091540] px-4 py-3">
               <div className="text-white font-bold text-sm">{round.name}</div>
               <div className="text-white/50 text-xs">{round.holes} holes</div>
             </div>
