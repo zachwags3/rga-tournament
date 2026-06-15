@@ -137,7 +137,7 @@ export default function Leaderboard() {
             <div className="text-5xl font-bold text-gray-900 mb-1">{pts1 % 1 === 0 ? pts1 : pts1.toFixed(1)}</div>
             <div className="text-sm font-semibold" style={{ color: team1?.color }}>{team1?.name ?? 'Team 1'}</div>
             <div className="text-gray-400 text-xs mt-1">Capt. {team1?.captain_name}</div>
-            <div className="text-gray-400 text-xs mt-0.5">{holesWon1} holes won</div>
+            <div className="text-xs mt-0.5" style={{ color: team1?.color }}>{holesWon1} holes won</div>
           </div>
           {/* Divider */}
           <div className="flex items-center justify-center px-4">
@@ -149,7 +149,7 @@ export default function Leaderboard() {
             <div className="text-5xl font-bold text-gray-900 mb-1">{pts2 % 1 === 0 ? pts2 : pts2.toFixed(1)}</div>
             <div className="text-sm font-semibold" style={{ color: team2?.color }}>{team2?.name ?? 'Team 2'}</div>
             <div className="text-gray-400 text-xs mt-1">Capt. {team2?.captain_name}</div>
-            <div className="text-gray-400 text-xs mt-0.5">{holesWon2} holes won</div>
+            <div className="text-xs mt-0.5" style={{ color: team2?.color }}>{holesWon2} holes won</div>
           </div>
         </div>
         <div className="px-5 py-3 border-t border-gray-100 text-center">
