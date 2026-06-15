@@ -171,9 +171,9 @@ export default function ScoreEntry({ matchId }: Props) {
             {scoredHoles === 0 ? (
               <span className="text-white/30 text-sm font-light">vs</span>
             ) : mpStatus.holesUp > 0 ? (
-              <span className="text-2xl font-bold leading-none drop-shadow-sm" style={{ color: team1?.color }}>◀</span>
+              <span className="text-3xl font-bold leading-none" style={{ color: team1?.color, WebkitTextStroke: '1.5px white' }}>◀</span>
             ) : mpStatus.holesUp < 0 ? (
-              <span className="text-2xl font-bold leading-none drop-shadow-sm" style={{ color: team2?.color }}>▶</span>
+              <span className="text-3xl font-bold leading-none" style={{ color: team2?.color, WebkitTextStroke: '1.5px white' }}>▶</span>
             ) : (
               <span className="text-white/50 text-xs font-semibold">A/S</span>
             )}
