@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { calcMatchPlayStatus } from '@/lib/matchplay'
+import { calcMatchPlayStatus, calcRgaPoints } from '@/lib/matchplay'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -62,7 +62,7 @@ export default function Leaderboard() {
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  // Calculate overall RGA points per team
+  // Calculate overall RGA points per team (complete = finalized, in_progress = live tentative)
   const teamPoints: Record<string, number> = {}
   teams.forEach(t => { teamPoints[t.id] = 0 })
   rounds.forEach(r =>
@@ -70,6 +70,16 @@ export default function Leaderboard() {
       if (m.status === 'complete') {
         if (m.team1_id) teamPoints[m.team1_id] = (teamPoints[m.team1_id] ?? 0) + Number(m.rga_points_team1)
         if (m.team2_id) teamPoints[m.team2_id] = (teamPoints[m.team2_id] ?? 0) + Number(m.rga_points_team2)
+      } else if (m.status === 'in_progress') {
+        const liveStatus = calcMatchPlayStatus(m.hole_scores, r.holes)
+        if (liveStatus.holesPlayed > 0) {
+          const tentativeWinner = liveStatus.holesUp > 0 ? 'team1'
+            : liveStatus.holesUp < 0 ? 'team2'
+            : 'halved'
+          const pts = calcRgaPoints(tentativeWinner)
+          if (m.team1_id) teamPoints[m.team1_id] = (teamPoints[m.team1_id] ?? 0) + pts.team1
+          if (m.team2_id) teamPoints[m.team2_id] = (teamPoints[m.team2_id] ?? 0) + pts.team2
+        }
       }
     })
   )
