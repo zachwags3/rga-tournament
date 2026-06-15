@@ -107,36 +107,40 @@ export default function Leaderboard() {
     )
   }
 
+  const borderColor = pts1 > pts2 ? (team1?.color ?? '#e5e7eb')
+    : pts2 > pts1 ? (team2?.color ?? '#e5e7eb')
+    : '#e5e7eb'
+
   return (
     <div className="max-w-2xl mx-auto px-4 pb-12">
       {/* Overall scoreboard */}
-      <div className="bg-[#1a3a2a] rounded-2xl overflow-hidden shadow-xl mb-6">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm mb-6 border-[3px]" style={{ borderColor }}>
         <div className="px-5 pt-5 pb-3 text-center">
-          <p className="text-white/70 text-xs font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
-          <p className="text-white/60 text-xs">June 27–28 · 12 RGA Points Total</p>
+          <p className="text-gray-500 text-xs font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
+          <p className="text-gray-400 text-xs">June 27–28 · 12 RGA Points Total</p>
         </div>
         <div className="flex items-stretch">
           {/* Team 1 */}
           <div className="flex-1 flex flex-col items-center justify-center py-6"
-            style={pts1 > pts2 ? { backgroundColor: (team1?.color ?? '') + '33' } : {}}>
-            <div className="text-5xl font-bold text-white mb-1">{pts1 % 1 === 0 ? pts1 : pts1.toFixed(1)}</div>
+            style={pts1 > pts2 ? { backgroundColor: (team1?.color ?? '') + '22' } : {}}>
+            <div className="text-5xl font-bold text-gray-900 mb-1">{pts1 % 1 === 0 ? pts1 : pts1.toFixed(1)}</div>
             <div className="text-sm font-semibold" style={{ color: team1?.color }}>{team1?.name ?? 'Team 1'}</div>
-            <div className="text-white/50 text-xs mt-1">Capt. {team1?.captain_name}</div>
+            <div className="text-gray-400 text-xs mt-1">Capt. {team1?.captain_name}</div>
           </div>
           {/* Divider */}
           <div className="flex items-center justify-center px-4">
-            <div className="text-white/30 text-2xl font-light">–</div>
+            <div className="text-gray-300 text-2xl font-light">–</div>
           </div>
           {/* Team 2 */}
           <div className="flex-1 flex flex-col items-center justify-center py-6"
-            style={pts2 > pts1 ? { backgroundColor: (team2?.color ?? '') + '33' } : {}}>
-            <div className="text-5xl font-bold text-white mb-1">{pts2 % 1 === 0 ? pts2 : pts2.toFixed(1)}</div>
+            style={pts2 > pts1 ? { backgroundColor: (team2?.color ?? '') + '22' } : {}}>
+            <div className="text-5xl font-bold text-gray-900 mb-1">{pts2 % 1 === 0 ? pts2 : pts2.toFixed(1)}</div>
             <div className="text-sm font-semibold" style={{ color: team2?.color }}>{team2?.name ?? 'Team 2'}</div>
-            <div className="text-white/50 text-xs mt-1">Capt. {team2?.captain_name}</div>
+            <div className="text-gray-400 text-xs mt-1">Capt. {team2?.captain_name}</div>
           </div>
         </div>
-        <div className="px-5 py-3 border-t border-white/10 text-center">
-          <p className="text-white/40 text-xs">Need 6.5 pts to win</p>
+        <div className="px-5 py-3 border-t border-gray-100 text-center">
+          <p className="text-gray-400 text-xs">Need 6.5 pts to win</p>
         </div>
       </div>
 
