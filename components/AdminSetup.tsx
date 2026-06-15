@@ -91,6 +91,8 @@ export default function AdminSetup() {
             ))}
           </div>
 
+          <ResetScoresPanel rounds={rounds} matches={matches} onRefresh={fetchAll} />
+
           <div className="bg-red-50 rounded-xl border border-red-200 p-4">
             <h2 className="font-bold text-red-700 mb-1">Danger Zone</h2>
             <p className="text-red-500 text-xs mb-3">
@@ -349,6 +351,68 @@ function TeamNameEditor({ teams, onSaved }: { teams: Team[]; onSaved: () => void
         className="w-full bg-[#2d5a3d] text-white py-2.5 rounded-xl font-bold text-sm disabled:opacity-40 transition-colors"
       >
         {saved ? '✓ Saved!' : saving ? 'Saving...' : 'Save Team Names'}
+      </button>
+    </div>
+  )
+}
+
+function ResetScoresPanel({ rounds, matches, onRefresh }: { rounds: Round[]; matches: Match[]; onRefresh: () => void }) {
+  const [roundId, setRoundId] = useState('')
+  const [matchId, setMatchId] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const roundMatches = matches
+    .filter(m => m.round_id === roundId)
+    .sort((a, b) => a.match_number - b.match_number)
+
+  async function resetMatch() {
+    if (!matchId) return
+    if (!confirm('Reset all scores for this match? Pairings are kept.')) return
+    setSaving(true)
+    await supabase.from('hole_scores').delete().eq('match_id', matchId)
+    await supabase.from('matches').update({
+      status: 'pending', result: null, rga_points_team1: 0, rga_points_team2: 0,
+    }).eq('id', matchId)
+    await onRefresh()
+    setMatchId('')
+    setSaving(false)
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <h2 className="font-bold text-[#1a3a2a] mb-1 text-sm">Reset Match Scores</h2>
+      <p className="text-gray-400 text-xs mb-3">Clear scores for one match. Pairings are kept.</p>
+
+      <select
+        value={roundId}
+        onChange={e => { setRoundId(e.target.value); setMatchId('') }}
+        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm mb-2 outline-none focus:border-[#2d5a3d]"
+      >
+        <option value="">Select Round</option>
+        {rounds.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+      </select>
+
+      {roundId && (
+        <select
+          value={matchId}
+          onChange={e => setMatchId(e.target.value)}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm mb-3 outline-none focus:border-[#2d5a3d]"
+        >
+          <option value="">Select Match</option>
+          {roundMatches.map(m => (
+            <option key={m.id} value={m.id}>
+              Match {m.match_number}: {m.team1_player_names.join(' & ')} vs {m.team2_player_names.join(' & ')}
+            </option>
+          ))}
+        </select>
+      )}
+
+      <button
+        onClick={resetMatch}
+        disabled={saving || !matchId}
+        className="w-full border border-red-200 text-red-500 py-2.5 rounded-xl font-semibold text-sm disabled:opacity-40 hover:bg-red-50"
+      >
+        {saving ? 'Resetting...' : '🗑️ Reset This Match'}
       </button>
     </div>
   )
