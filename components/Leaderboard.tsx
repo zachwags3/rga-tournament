@@ -290,21 +290,21 @@ function MatchCard({ match, round, team1, team2 }: {
         {/* Hole progress bar */}
         {status.holesPlayed > 0 && (
           <div className="mt-3">
-            <div className="flex gap-1.5 flex-wrap justify-center">
+            <div className="flex gap-2 flex-wrap justify-center">
               {Array.from({ length: round.holes }).map((_, i) => {
                 const holeScore = match.hole_scores.find(h => h.hole_number === i + 1)
                 const bgColor = holeScore?.winner === 'team1' ? team1?.color
                   : holeScore?.winner === 'team2' ? team2?.color
-                  : holeScore?.winner === 'halved' ? '#fde68a'
+                  : holeScore?.winner === 'halved' ? '#fcd97a40'
                   : '#e5e7eb'
                 const textColor = holeScore?.winner === 'team1' || holeScore?.winner === 'team2' ? '#fff'
-                  : holeScore?.winner === 'halved' ? '#b45309'
+                  : holeScore?.winner === 'halved' ? '#92620a'
                   : '#9ca3af'
                 return (
                   <div
                     key={i}
                     className="flex items-center justify-center rounded text-[9px] font-semibold transition-colors"
-                    style={{ backgroundColor: bgColor, color: textColor, width: 20, height: 20 }}
+                    style={{ backgroundColor: bgColor, color: textColor, width: 26, height: 26 }}
                   >
                     {i + 1}
                   </div>
