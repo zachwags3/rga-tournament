@@ -296,7 +296,7 @@ export default function ScoreEntry({ matchId }: Props) {
               disabled={saving || scoredHoles === 0}
               className="w-full bg-[#091540] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 hover:bg-[#060e2e] transition-colors shadow-lg"
             >
-              {saving ? 'Saving...' : '🏁 Finalize Match & Record Points'}
+              {saving ? 'Saving...' : 'Finalize Match & Record Points'}
             </button>
             {scoredHoles > 0 && (
               <p className="text-center text-xs text-gray-400">
