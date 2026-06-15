@@ -146,8 +146,8 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
     const cap1 = cap1First ? captains[1] : captains[0]
 
     const { data: teamsData } = await supabase.from('teams').insert([
-      { name: `Team ${cap0}`, captain_name: cap0, color: '#2d5a3d' },
-      { name: `Team ${cap1}`, captain_name: cap1, color: '#c9a84c' },
+      { name: `Team ${cap0}`, captain_name: cap0, color: '#6b7280' },
+      { name: `Team ${cap1}`, captain_name: cap1, color: '#1e3a8a' },
     ]).select()
 
     if (!teamsData || teamsData.length < 2) { setSaving(false); return }
@@ -356,7 +356,7 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
         <div className="grid grid-cols-2 gap-3 mb-5">
           {[0, 1].map(teamIdx => {
             const capName = teamIdx === 0 ? displayCap0 : displayCap1
-            const color = teamIdx === 0 ? '#2d5a3d' : '#c9a84c'
+            const color = teamIdx === 0 ? '#6b7280' : '#1e3a8a'
             return (
               <div key={teamIdx}>
                 <div className="text-center py-3 rounded-xl font-bold text-white text-sm mb-2 shadow-sm" style={{ backgroundColor: color }}>
