@@ -169,7 +169,16 @@ export default function StatsBoard() {
       setPars(parsMap)
       setLoading(false)
     }
+
     load()
+
+    const channel = supabase
+      .channel('stats-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hole_scores' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, load)
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   if (loading) return <div className="p-8 text-center text-[#2d5a3d]">Loading stats...</div>
