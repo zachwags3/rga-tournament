@@ -59,13 +59,14 @@ export default function DraftHistory() {
         {[team0, team1].map((team, teamIdx) => {
           const teamPlayers = players.filter(p => p.team_id === team.id && !p.is_captain)
             .sort((a, b) => a.pick_number - b.pick_number)
+          const cardBg = teamIdx === 0 ? '#6b7280' : '#091540'
 
           return (
             <div key={team.id}>
               {/* Captain header */}
               <div
                 className="text-center py-3 rounded-xl font-bold text-white text-sm mb-2 shadow-sm"
-                style={{ backgroundColor: team.color }}
+                style={{ backgroundColor: cardBg }}
               >
                 <div className="text-lg">👑</div>
                 <div>{team.captain_name}</div>
