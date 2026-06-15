@@ -45,7 +45,7 @@ export default function NavHeader() {
         <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/admin"
-            className="text-white/50 text-xs hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10 whitespace-nowrap"
+            className="text-white/40 text-[10px] hover:text-white/70 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10 whitespace-nowrap"
           >
             Admin
           </Link>
