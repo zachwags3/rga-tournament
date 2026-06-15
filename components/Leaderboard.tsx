@@ -235,7 +235,7 @@ function MatchCard({ match, round, team1, team2 }: {
             <div className="text-xs text-gray-400 mb-0.5" style={{ color: team1?.color }}>
               {team1?.name ?? 'Team 1'}
             </div>
-            <div className="font-semibold text-[#1a3a2a] text-sm leading-tight">
+            <div className="font-semibold text-sm leading-tight" style={{ color: team1?.color }}>
               {match.team1_player_names.join(' & ')}
             </div>
           </div>
@@ -255,7 +255,7 @@ function MatchCard({ match, round, team1, team2 }: {
             <div className="text-xs text-gray-400 mb-0.5" style={{ color: team2?.color }}>
               {team2?.name ?? 'Team 2'}
             </div>
-            <div className="font-semibold text-[#1a3a2a] text-sm leading-tight">
+            <div className="font-semibold text-sm leading-tight" style={{ color: team2?.color }}>
               {match.team2_player_names.join(' & ')}
             </div>
           </div>
@@ -323,7 +323,7 @@ function MatchCard({ match, round, team1, team2 }: {
       {/* Score entry button */}
       <Link
         href={`/score/${match.id}`}
-        className="flex items-center justify-center gap-1 py-2.5 bg-[#f5f2eb] hover:bg-[#ede8dc] transition-colors border-t border-gray-100 text-sm font-medium text-[#2d5a3d]"
+        className="flex items-center justify-center gap-1 py-2.5 bg-[#f5f2eb] hover:bg-[#ede8dc] transition-colors border-t border-gray-100 text-sm font-medium text-[#1e3a8a]"
       >
         {match.status === 'pending' ? '▶ Start & Enter Scores' : match.status === 'in_progress' ? '✏️ Update Scores' : '📋 View Scorecard'}
       </Link>
