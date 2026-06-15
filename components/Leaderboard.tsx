@@ -112,14 +112,15 @@ export default function Leaderboard() {
       {/* Overall scoreboard */}
       <div className="bg-[#1a3a2a] rounded-2xl overflow-hidden shadow-xl mb-6">
         <div className="px-5 pt-5 pb-3 text-center">
-          <p className="text-[#c9a84c] text-xs font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
+          <p className="text-white/70 text-xs font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
           <p className="text-white/60 text-xs">June 27–28 · 12 RGA Points Total</p>
         </div>
         <div className="flex items-stretch">
           {/* Team 1 */}
-          <div className={`flex-1 flex flex-col items-center justify-center py-6 ${pts1 > pts2 ? 'bg-[#c9a84c]/20' : ''}`}>
+          <div className="flex-1 flex flex-col items-center justify-center py-6"
+            style={pts1 > pts2 ? { backgroundColor: (team1?.color ?? '') + '33' } : {}}>
             <div className="text-5xl font-bold text-white mb-1">{pts1 % 1 === 0 ? pts1 : pts1.toFixed(1)}</div>
-            <div className="text-[#c9a84c] text-sm font-semibold">{team1?.name ?? 'Team 1'}</div>
+            <div className="text-sm font-semibold" style={{ color: team1?.color }}>{team1?.name ?? 'Team 1'}</div>
             <div className="text-white/50 text-xs mt-1">Capt. {team1?.captain_name}</div>
           </div>
           {/* Divider */}
@@ -127,9 +128,10 @@ export default function Leaderboard() {
             <div className="text-white/30 text-2xl font-light">–</div>
           </div>
           {/* Team 2 */}
-          <div className={`flex-1 flex flex-col items-center justify-center py-6 ${pts2 > pts1 ? 'bg-[#c9a84c]/20' : ''}`}>
+          <div className="flex-1 flex flex-col items-center justify-center py-6"
+            style={pts2 > pts1 ? { backgroundColor: (team2?.color ?? '') + '33' } : {}}>
             <div className="text-5xl font-bold text-white mb-1">{pts2 % 1 === 0 ? pts2 : pts2.toFixed(1)}</div>
-            <div className="text-[#c9a84c] text-sm font-semibold">{team2?.name ?? 'Team 2'}</div>
+            <div className="text-sm font-semibold" style={{ color: team2?.color }}>{team2?.name ?? 'Team 2'}</div>
             <div className="text-white/50 text-xs mt-1">Capt. {team2?.captain_name}</div>
           </div>
         </div>
@@ -222,11 +224,9 @@ function MatchCard({ match, round, team1, team2 }: {
             {status.holesPlayed === 0 ? (
               <span className="text-gray-300 font-light text-sm">vs</span>
             ) : status.holesUp > 0 ? (
-              // Team 1 leading — arrow points left
-              <span className="text-[#2d5a3d] text-xl font-bold leading-none">◀</span>
+              <span className="text-xl font-bold leading-none" style={{ color: team1?.color }}>◀</span>
             ) : status.holesUp < 0 ? (
-              // Team 2 leading — arrow points right
-              <span className="text-[#c9a84c] text-xl font-bold leading-none">▶</span>
+              <span className="text-xl font-bold leading-none" style={{ color: team2?.color }}>▶</span>
             ) : (
               // All square
               <span className="text-gray-400 text-xs font-semibold tracking-tight">A/S</span>
@@ -252,13 +252,19 @@ function MatchCard({ match, round, team1, team2 }: {
           {status.holesPlayed > 0 && (
             <div className="text-right">
               {isComplete || isAS ? (
-                <span className={`font-bold text-sm ${isAS ? 'text-gray-500' : leadingTeam ? 'text-[#2d5a3d]' : 'text-gray-500'}`}>
+                <span
+                  className="font-bold text-sm"
+                  style={{ color: isAS ? undefined : leadingTeam?.color ?? undefined }}
+                >
                   {status.resultLabel}
                 </span>
               ) : (
-                <div className="text-right">
-                  <span className="font-bold text-sm text-[#2d5a3d]">{status.resultLabel}</span>
-                </div>
+                <span
+                  className="font-bold text-sm"
+                  style={{ color: leadingTeam?.color }}
+                >
+                  {status.resultLabel}
+                </span>
               )}
             </div>
           )}
@@ -270,11 +276,11 @@ function MatchCard({ match, round, team1, team2 }: {
             <div className="flex gap-px h-1.5 rounded-full overflow-hidden bg-gray-100">
               {Array.from({ length: round.holes }).map((_, i) => {
                 const holeScore = match.hole_scores.find(h => h.hole_number === i + 1)
-                let color = 'bg-gray-200'
-                if (holeScore?.winner === 'team1') color = 'bg-[#2d5a3d]'
-                else if (holeScore?.winner === 'team2') color = 'bg-[#c9a84c]'
-                else if (holeScore?.winner === 'halved') color = 'bg-gray-400'
-                return <div key={i} className={`flex-1 ${color} transition-colors`} />
+                const bgColor = holeScore?.winner === 'team1' ? team1?.color
+                  : holeScore?.winner === 'team2' ? team2?.color
+                  : holeScore?.winner === 'halved' ? '#9ca3af'
+                  : '#e5e7eb'
+                return <div key={i} className="flex-1 transition-colors" style={{ backgroundColor: bgColor }} />
               })}
             </div>
             <div className="flex justify-between mt-1 text-[10px] text-gray-400">
