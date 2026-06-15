@@ -295,7 +295,7 @@ function MatchCard({ match, round, team1, team2 }: {
                 const holeScore = match.hole_scores.find(h => h.hole_number === i + 1)
                 const bgColor = holeScore?.winner === 'team1' ? team1?.color
                   : holeScore?.winner === 'team2' ? team2?.color
-                  : holeScore?.winner === 'halved' ? '#d9770655'
+                  : holeScore?.winner === 'halved' ? '#f59e0b55'
                   : '#e5e7eb'
                 const textColor = holeScore?.winner === 'team1' || holeScore?.winner === 'team2' ? '#fff'
                   : holeScore?.winner === 'halved' ? '#92620a'
