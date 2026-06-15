@@ -123,21 +123,25 @@ export default function Leaderboard() {
     : pts2 > pts1 ? (team2?.color ?? '#e5e7eb')
     : '#e5e7eb'
 
+  // Lighter variants of team colors for readability on dark navy background
+  const cardColor1 = '#a8b4c4'  // lighter gray
+  const cardColor2 = '#6b8fe0'  // lighter navy blue
+
   return (
     <div className="max-w-2xl mx-auto px-4 pb-12">
       {/* Overall scoreboard */}
       <div className="bg-[#091540] rounded-2xl overflow-hidden shadow-sm mb-6 border-[5px]" style={{ borderColor }}>
         <div className="px-5 pt-5 pb-3 text-center">
-          <p className="text-white/70 text-sm font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
+          <p className="text-white text-sm font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
         </div>
         <div className="flex items-stretch">
           {/* Team 1 */}
           <div className="flex-1 flex flex-col items-center justify-center py-6"
             style={pts1 > pts2 ? { backgroundColor: 'rgba(255,255,255,0.08)' } : {}}>
             <div className="text-5xl font-bold text-white mb-1">{pts1 % 1 === 0 ? pts1 : pts1.toFixed(1)}</div>
-            <div className="text-sm font-semibold" style={{ color: team1?.color }}>{team1?.name ?? 'Team 1'}</div>
+            <div className="text-sm font-semibold" style={{ color: cardColor1 }}>{team1?.name ?? 'Team 1'}</div>
             <div className="text-white/50 text-xs mt-1">Capt. {team1?.captain_name}</div>
-            <div className="text-xs mt-0.5" style={{ color: team1?.color }}>{holesWon1} holes won</div>
+            <div className="text-xs mt-0.5" style={{ color: cardColor1 }}>{holesWon1} holes won</div>
           </div>
           {/* Divider */}
           <div className="flex items-center justify-center px-4">
@@ -147,9 +151,9 @@ export default function Leaderboard() {
           <div className="flex-1 flex flex-col items-center justify-center py-6"
             style={pts2 > pts1 ? { backgroundColor: 'rgba(255,255,255,0.08)' } : {}}>
             <div className="text-5xl font-bold text-white mb-1">{pts2 % 1 === 0 ? pts2 : pts2.toFixed(1)}</div>
-            <div className="text-sm font-semibold" style={{ color: team2?.color }}>{team2?.name ?? 'Team 2'}</div>
+            <div className="text-sm font-semibold" style={{ color: cardColor2 }}>{team2?.name ?? 'Team 2'}</div>
             <div className="text-white/50 text-xs mt-1">Capt. {team2?.captain_name}</div>
-            <div className="text-xs mt-0.5" style={{ color: team2?.color }}>{holesWon2} holes won</div>
+            <div className="text-xs mt-0.5" style={{ color: cardColor2 }}>{holesWon2} holes won</div>
           </div>
         </div>
         <div className="px-5 py-3 border-t border-white/10 text-center">
