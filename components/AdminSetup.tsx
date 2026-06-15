@@ -66,7 +66,12 @@ export default function AdminSetup() {
       </div>
 
       {/* DRAFT TAB */}
-      {activeTab === 'draft' && <DraftBoard onDraftSaved={fetchAll} />}
+      {activeTab === 'draft' && (
+        <div className="space-y-4">
+          <DraftBoard onDraftSaved={fetchAll} />
+          {teams.length >= 2 && <TeamNameEditor teams={teams} onSaved={fetchAll} />}
+        </div>
+      )}
 
       {/* COURSES TAB */}
       {activeTab === 'courses' && <CourseAdmin />}
@@ -293,6 +298,57 @@ function PairingsTab({
           </div>
         )
       })}
+    </div>
+  )
+}
+
+function TeamNameEditor({ teams, onSaved }: { teams: Team[]; onSaved: () => void }) {
+  const [name0, setName0] = useState(teams[0].name)
+  const [name1, setName1] = useState(teams[1].name)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  async function save() {
+    if (!name0.trim() || !name1.trim()) return
+    setSaving(true)
+    await Promise.all([
+      supabase.from('teams').update({ name: name0.trim() }).eq('id', teams[0].id),
+      supabase.from('teams').update({ name: name1.trim() }).eq('id', teams[1].id),
+    ])
+    await onSaved()
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <h2 className="font-bold text-[#1a3a2a] mb-3 text-sm">Change Team Names</h2>
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div>
+          <div className="text-xs font-semibold mb-1" style={{ color: teams[0].color }}>{teams[0].captain_name}&apos;s Team</div>
+          <input
+            value={name0}
+            onChange={e => setName0(e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]"
+          />
+        </div>
+        <div>
+          <div className="text-xs font-semibold mb-1" style={{ color: teams[1].color }}>{teams[1].captain_name}&apos;s Team</div>
+          <input
+            value={name1}
+            onChange={e => setName1(e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]"
+          />
+        </div>
+      </div>
+      <button
+        onClick={save}
+        disabled={saving || !name0.trim() || !name1.trim()}
+        className="w-full bg-[#2d5a3d] text-white py-2.5 rounded-xl font-bold text-sm disabled:opacity-40 transition-colors"
+      >
+        {saved ? '✓ Saved!' : saving ? 'Saving...' : 'Save Team Names'}
+      </button>
     </div>
   )
 }
