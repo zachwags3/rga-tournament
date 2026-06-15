@@ -243,9 +243,9 @@ function MatchCard({ match, round, team1, team2 }: {
             {status.holesPlayed === 0 ? (
               <span className="text-gray-300 font-light text-sm">vs</span>
             ) : status.holesUp > 0 ? (
-              <span className="text-xl font-bold leading-none" style={{ color: team1?.color }}>◀</span>
+              <span className="text-2xl font-bold leading-none" style={{ color: team1?.color }}>◀</span>
             ) : status.holesUp < 0 ? (
-              <span className="text-xl font-bold leading-none" style={{ color: team2?.color }}>▶</span>
+              <span className="text-2xl font-bold leading-none" style={{ color: team2?.color }}>▶</span>
             ) : (
               // All square
               <span className="text-gray-400 text-xs font-semibold tracking-tight">A/S</span>
