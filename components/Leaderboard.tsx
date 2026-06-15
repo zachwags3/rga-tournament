@@ -74,6 +74,18 @@ export default function Leaderboard() {
     })
   )
 
+  // Count total holes won per team across all matches (live, not just complete)
+  let holesWon1 = 0
+  let holesWon2 = 0
+  rounds.forEach(r =>
+    r.matches.forEach(m =>
+      m.hole_scores.forEach(h => {
+        if (h.winner === 'team1') holesWon1++
+        else if (h.winner === 'team2') holesWon2++
+      })
+    )
+  )
+
   const team1 = teams[0]
   const team2 = teams[1]
   const pts1 = team1 ? (teamPoints[team1.id] ?? 0) : 0
@@ -114,10 +126,9 @@ export default function Leaderboard() {
   return (
     <div className="max-w-2xl mx-auto px-4 pb-12">
       {/* Overall scoreboard */}
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm mb-6 border-[3px]" style={{ borderColor }}>
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm mb-6 border-[5px]" style={{ borderColor }}>
         <div className="px-5 pt-5 pb-3 text-center">
-          <p className="text-gray-500 text-xs font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
-          <p className="text-gray-400 text-xs">June 27–28 · 12 RGA Points Total</p>
+          <p className="text-gray-700 text-sm font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
         </div>
         <div className="flex items-stretch">
           {/* Team 1 */}
@@ -126,6 +137,7 @@ export default function Leaderboard() {
             <div className="text-5xl font-bold text-gray-900 mb-1">{pts1 % 1 === 0 ? pts1 : pts1.toFixed(1)}</div>
             <div className="text-sm font-semibold" style={{ color: team1?.color }}>{team1?.name ?? 'Team 1'}</div>
             <div className="text-gray-400 text-xs mt-1">Capt. {team1?.captain_name}</div>
+            <div className="text-gray-400 text-xs mt-0.5">{holesWon1} holes won</div>
           </div>
           {/* Divider */}
           <div className="flex items-center justify-center px-4">
@@ -137,6 +149,7 @@ export default function Leaderboard() {
             <div className="text-5xl font-bold text-gray-900 mb-1">{pts2 % 1 === 0 ? pts2 : pts2.toFixed(1)}</div>
             <div className="text-sm font-semibold" style={{ color: team2?.color }}>{team2?.name ?? 'Team 2'}</div>
             <div className="text-gray-400 text-xs mt-1">Capt. {team2?.captain_name}</div>
+            <div className="text-gray-400 text-xs mt-0.5">{holesWon2} holes won</div>
           </div>
         </div>
         <div className="px-5 py-3 border-t border-gray-100 text-center">
