@@ -145,6 +145,8 @@ export default function ScoreEntry({ matchId }: Props) {
 
   const team1 = teams.find(t => t.id === match.team1_id)
   const team2 = teams.find(t => t.id === match.team2_id)
+  const team1Color = team1?.color ?? '#6b7280'
+  const team2Color = team2?.color ?? '#1e3a8a'
   const mpStatus = calcMatchPlayStatus(holeScores, round.holes)
 
   const scoredHoles = holeScores.filter(h => h.winner !== null).length
@@ -155,7 +157,7 @@ export default function ScoreEntry({ matchId }: Props) {
     <div className="max-w-lg mx-auto px-4 pb-16">
       {/* Match header */}
       <div className="bg-[#1a3a2a] rounded-2xl p-4 mb-5 shadow-lg">
-        <div className="text-[#c9a84c] text-xs font-semibold tracking-widest uppercase mb-3 text-center">
+        <div className="text-white/70 text-xs font-semibold tracking-widest uppercase mb-3 text-center">
           {round.name}
         </div>
         <div className="flex items-center justify-between">
@@ -169,9 +171,9 @@ export default function ScoreEntry({ matchId }: Props) {
             {scoredHoles === 0 ? (
               <span className="text-white/30 text-sm font-light">vs</span>
             ) : mpStatus.holesUp > 0 ? (
-              <span className="text-[#2d5a3d] text-2xl font-bold leading-none drop-shadow-sm">◀</span>
+              <span className="text-2xl font-bold leading-none drop-shadow-sm" style={{ color: team1?.color }}>◀</span>
             ) : mpStatus.holesUp < 0 ? (
-              <span className="text-[#c9a84c] text-2xl font-bold leading-none drop-shadow-sm">▶</span>
+              <span className="text-2xl font-bold leading-none drop-shadow-sm" style={{ color: team2?.color }}>▶</span>
             ) : (
               <span className="text-white/50 text-xs font-semibold">A/S</span>
             )}
@@ -187,7 +189,7 @@ export default function ScoreEntry({ matchId }: Props) {
         {/* Live match play status */}
         {scoredHoles > 0 && (
           <div className={`mt-4 text-center py-2.5 rounded-xl ${
-            mpStatus.isComplete ? 'bg-[#c9a84c]/20' : 'bg-white/10'
+            mpStatus.isComplete ? 'bg-white/20' : 'bg-white/10'
           }`}>
             <span className="text-white font-bold text-lg">{mpStatus.resultLabel}</span>
             {!mpStatus.isComplete && (
@@ -222,12 +224,12 @@ export default function ScoreEntry({ matchId }: Props) {
         <div className="text-center text-xs text-gray-400 font-medium">Par</div>
         <div className="text-center leading-tight">
           {match.team1_player_names.map((name, i) => (
-            <div key={i} className="text-xs text-[#2d5a3d] font-semibold">{name.split(' ')[0]}</div>
+            <div key={i} className="text-xs font-semibold" style={{ color: team1?.color }}>{name.split(' ')[0]}</div>
           ))}
         </div>
         <div className="text-center leading-tight">
           {match.team2_player_names.map((name, i) => (
-            <div key={i} className="text-xs text-[#c9a84c] font-semibold">{name.split(' ')[0]}</div>
+            <div key={i} className="text-xs font-semibold" style={{ color: team2?.color }}>{name.split(' ')[0]}</div>
           ))}
         </div>
         <div className="text-center text-xs text-gray-400 font-medium">Win</div>
@@ -248,6 +250,8 @@ export default function ScoreEntry({ matchId }: Props) {
               local={local}
               saved={saved}
               isReadOnly={isReadOnly}
+              team1Color={team1Color}
+              team2Color={team2Color}
               onChange={(t1, t2) => {
                 setLocalScores(prev => ({ ...prev, [hole]: { t1, t2 } }))
               }}
@@ -329,7 +333,7 @@ export default function ScoreEntry({ matchId }: Props) {
   )
 }
 
-function scoreInputClasses(score: number | null, par: number | null, isWinner: boolean, team: 'green' | 'gold'): string {
+function scoreInputClasses(score: number | null, par: number | null): string {
   const base = 'w-12 text-center text-lg font-bold py-2 outline-none transition-all disabled:opacity-60 focus:bg-white'
 
   if (score && par && score > 0) {
@@ -338,93 +342,90 @@ function scoreInputClasses(score: number | null, par: number | null, isWinner: b
     if (diff === -1) return `${base} rounded-full border-2 border-red-500 bg-white text-[#1a3a2a]`
     if (diff === 0)  return `${base} rounded-lg  border   border-gray-200 bg-gray-50 text-[#1a3a2a]`
     if (diff === 1)  return `${base} rounded-[3px] border-2 border-gray-700 bg-gray-50 text-[#1a3a2a]`
-    /* double bogey+ */
     return               `${base} rounded-[3px] border-2 border-gray-700 bg-gray-50 text-[#1a3a2a]`
   }
 
-  // No par data — fall back to winner highlight
-  if (isWinner) {
-    return team === 'green'
-      ? `${base} rounded-lg border border-[#2d5a3d] bg-[#2d5a3d]/10 text-[#2d5a3d]`
-      : `${base} rounded-lg border border-[#c9a84c] bg-[#c9a84c]/10 text-[#c9a84c]`
-  }
   return `${base} rounded-lg border border-gray-200 bg-gray-50 text-[#1a3a2a]`
 }
 
-function scoreInputStyle(score: number | null, par: number | null): React.CSSProperties {
-  if (!score || !par || score <= 0) return {}
-  const diff = score - par
-  // Double circle for eagle: inner border + outer ring via box-shadow
-  if (diff <= -2) return { boxShadow: '0 0 0 3px white, 0 0 0 5px #ef4444' }
-  // Double square for double bogey+
-  if (diff >= 2)  return { boxShadow: '0 0 0 3px white, 0 0 0 5px #374151' }
+function scoreInputStyle(
+  score: number | null,
+  par: number | null,
+  isWinner: boolean,
+  teamColor: string,
+): React.CSSProperties {
+  if (score && par && score > 0) {
+    const diff = score - par
+    if (diff <= -2) return { boxShadow: '0 0 0 3px white, 0 0 0 5px #ef4444' }
+    if (diff >= 2)  return { boxShadow: '0 0 0 3px white, 0 0 0 5px #374151' }
+    return {}
+  }
+  // No par data — winner highlight with team color
+  if (isWinner) return { borderColor: teamColor, backgroundColor: teamColor + '1a', color: teamColor }
   return {}
 }
 
 function HoleRow({
-  hole, par, local, saved, isReadOnly, onChange, onBlur
+  hole, par, local, saved, isReadOnly, team1Color, team2Color, onChange, onBlur
 }: {
   hole: number
   par: number | null
   local: { t1: string; t2: string }
   saved?: HoleScore
   isReadOnly: boolean
+  team1Color: string
+  team2Color: string
   onChange: (t1: string, t2: string) => void
   onBlur: (t1: string, t2: string) => void
 }) {
   const winner = saved?.winner
-  const rowBg = winner === 'team1' ? 'bg-[#2d5a3d]/8 border-[#2d5a3d]/20'
-    : winner === 'team2' ? 'bg-[#c9a84c]/8 border-[#c9a84c]/20'
-    : winner === 'halved' ? 'bg-gray-50 border-gray-200'
-    : 'bg-white border-gray-100'
-
-  const winnerIcon = winner === 'team1' ? '🟢' : winner === 'team2' ? '🟡' : winner === 'halved' ? '—' : ''
   const t1Score = saved?.team1_score ?? null
   const t2Score = saved?.team2_score ?? null
 
-  return (
-    <div className={`grid grid-cols-[2rem_2rem_1fr_1fr_2.5rem] gap-1.5 items-center px-3 py-2.5 rounded-xl border ${rowBg} transition-colors`}>
-      {/* Hole # */}
-      <div className="text-center text-sm font-bold text-gray-500">{hole}</div>
+  const rowBaseClass = winner === 'halved' ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100'
+  const rowStyle: React.CSSProperties = winner === 'team1'
+    ? { backgroundColor: team1Color + '14', borderColor: team1Color + '33' }
+    : winner === 'team2'
+    ? { backgroundColor: team2Color + '14', borderColor: team2Color + '33' }
+    : {}
 
-      {/* Par */}
+  const winDot = winner === 'team1'
+    ? <span style={{ color: team1Color }}>●</span>
+    : winner === 'team2'
+    ? <span style={{ color: team2Color }}>●</span>
+    : winner === 'halved' ? <span className="text-gray-400">—</span> : null
+
+  return (
+    <div
+      className={`grid grid-cols-[2rem_2rem_1fr_1fr_2.5rem] gap-1.5 items-center px-3 py-2.5 rounded-xl border ${rowBaseClass} transition-colors`}
+      style={rowStyle}
+    >
+      <div className="text-center text-sm font-bold text-gray-500">{hole}</div>
       <div className="text-center text-sm font-semibold text-gray-400">{par ?? '—'}</div>
 
-      {/* Team 1 score */}
       <div className="flex justify-center">
         <input
-          type="number"
-          min="1"
-          max="15"
-          inputMode="numeric"
-          value={local.t1}
-          disabled={isReadOnly}
+          type="number" min="1" max="15" inputMode="numeric"
+          value={local.t1} disabled={isReadOnly} placeholder="—"
           onChange={e => onChange(e.target.value, local.t2)}
           onBlur={e => onBlur(e.target.value, local.t2)}
-          className={scoreInputClasses(t1Score, par, winner === 'team1', 'green')}
-          style={scoreInputStyle(t1Score, par)}
-          placeholder="—"
+          className={scoreInputClasses(t1Score, par)}
+          style={scoreInputStyle(t1Score, par, winner === 'team1', team1Color)}
         />
       </div>
 
-      {/* Team 2 score */}
       <div className="flex justify-center">
         <input
-          type="number"
-          min="1"
-          max="15"
-          inputMode="numeric"
-          value={local.t2}
-          disabled={isReadOnly}
+          type="number" min="1" max="15" inputMode="numeric"
+          value={local.t2} disabled={isReadOnly} placeholder="—"
           onChange={e => onChange(local.t1, e.target.value)}
           onBlur={e => onBlur(local.t1, e.target.value)}
-          className={scoreInputClasses(t2Score, par, winner === 'team2', 'gold')}
-          style={scoreInputStyle(t2Score, par)}
-          placeholder="—"
+          className={scoreInputClasses(t2Score, par)}
+          style={scoreInputStyle(t2Score, par, winner === 'team2', team2Color)}
         />
       </div>
 
-      <div className="text-center text-base">{winnerIcon}</div>
+      <div className="text-center text-base">{winDot}</div>
     </div>
   )
 }
