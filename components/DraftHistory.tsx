@@ -54,7 +54,7 @@ export default function DraftHistory() {
 
   return (
     <div className="mb-6">
-      <h2 className="text-[#1a3a2a] font-bold text-base mb-3 px-1">2026 Draft Board</h2>
+      <h2 className="text-black font-bold text-base mb-3 px-1">2026 Draft Board</h2>
       <div className="grid grid-cols-2 gap-3">
         {[team0, team1].map((team, teamIdx) => {
           const teamPlayers = players.filter(p => p.team_id === team.id && !p.is_captain)
@@ -68,7 +68,6 @@ export default function DraftHistory() {
                 className="text-center py-3 rounded-xl font-bold text-white text-sm mb-2 shadow-sm"
                 style={{ backgroundColor: cardBg }}
               >
-                <div className="text-lg">👑</div>
                 <div>{team.captain_name}</div>
                 <div className="text-white/70 text-xs font-normal">{team.name}</div>
               </div>
