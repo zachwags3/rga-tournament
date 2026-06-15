@@ -181,8 +181,10 @@ function RoundSection({ round, team1, team2 }: { round: RoundWithMatches; team1?
           </p>
         </div>
         <div className="text-right shrink-0">
-          <span className="text-sm font-semibold text-[#2d5a3d] whitespace-nowrap">
-            {roundPts1.toFixed(roundPts1 % 1 === 0 ? 0 : 1)} – {roundPts2.toFixed(roundPts2 % 1 === 0 ? 0 : 1)}
+          <span className="text-sm font-semibold whitespace-nowrap">
+            <span style={{ color: team1?.color }}>{roundPts1.toFixed(roundPts1 % 1 === 0 ? 0 : 1)}</span>
+            <span className="text-gray-900"> – </span>
+            <span style={{ color: team2?.color }}>{roundPts2.toFixed(roundPts2 % 1 === 0 ? 0 : 1)}</span>
           </span>
         </div>
       </div>
