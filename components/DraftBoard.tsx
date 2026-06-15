@@ -512,6 +512,17 @@ export default function DraftBoard({ onDraftSaved }: { onDraftSaved?: () => void
         Sunday matchups auto-set: Pick 1 vs Pick 1 … Pick 5 vs Pick 5 · Captains anchor match 6
       </div>
 
+      <button
+        onClick={() => {
+          if (confirm('Edit the draft? Re-saving will clear all existing scores and pairings.')) {
+            setPhase('drafting')
+          }
+        }}
+        disabled={saving}
+        className="w-full border border-gray-200 text-gray-500 py-3 rounded-xl text-sm font-bold hover:bg-gray-50 disabled:opacity-40 mb-2"
+      >
+        ✏️ Edit Draft
+      </button>
       <button onClick={deleteDraft} disabled={saving}
         className="w-full border border-red-200 text-red-500 py-3 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-40">
         🗑 Delete Draft & Start Over
