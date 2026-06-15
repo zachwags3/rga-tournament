@@ -386,7 +386,7 @@ function HoleRow({
   const rowStyle: React.CSSProperties = winner === 'team1'
     ? { backgroundColor: team1Color + '14', borderColor: team1Color + '33' }
     : winner === 'team2'
-    ? { backgroundColor: team2Color + '14', borderColor: team2Color + '33' }
+    ? { backgroundColor: team2Color + '30', borderColor: team2Color + '55' }
     : {}
 
   const winDot = winner === 'team1' ? '⚪️'
