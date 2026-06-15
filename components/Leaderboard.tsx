@@ -282,7 +282,7 @@ function MatchCard({ match, round, team1, team2 }: {
                 const holeScore = match.hole_scores.find(h => h.hole_number === i + 1)
                 const bgColor = holeScore?.winner === 'team1' ? team1?.color
                   : holeScore?.winner === 'team2' ? team2?.color
-                  : holeScore?.winner === 'halved' ? '#9ca3af'
+                  : holeScore?.winner === 'halved' ? '#f59e0b'
                   : '#e5e7eb'
                 return <div key={i} className="flex-1 transition-colors" style={{ backgroundColor: bgColor }} />
               })}
