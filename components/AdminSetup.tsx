@@ -303,18 +303,23 @@ function PairingsTab({
 }
 
 function TeamNameEditor({ teams, onSaved }: { teams: Team[]; onSaved: () => void }) {
-  const [name0, setName0] = useState(teams[0].name)
-  const [name1, setName1] = useState(teams[1].name)
+  const [names, setNames] = useState<Record<string, string>>(
+    () => Object.fromEntries(teams.map(t => [t.id, t.name]))
+  )
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved]   = useState(false)
+
+  // Sync inputs if teams are replaced entirely (e.g. draft reset)
+  useEffect(() => {
+    setNames(Object.fromEntries(teams.map(t => [t.id, t.name])))
+  }, [teams.map(t => t.id).join(',')])  // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
-    if (!name0.trim() || !name1.trim()) return
+    if (teams.some(t => !names[t.id]?.trim())) return
     setSaving(true)
-    await Promise.all([
-      supabase.from('teams').update({ name: name0.trim() }).eq('id', teams[0].id),
-      supabase.from('teams').update({ name: name1.trim() }).eq('id', teams[1].id),
-    ])
+    await Promise.all(
+      teams.map(t => supabase.from('teams').update({ name: names[t.id].trim() }).eq('id', t.id))
+    )
     await onSaved()
     setSaving(false)
     setSaved(true)
@@ -325,26 +330,22 @@ function TeamNameEditor({ teams, onSaved }: { teams: Team[]; onSaved: () => void
     <div className="bg-white rounded-xl border border-gray-200 p-4">
       <h2 className="font-bold text-[#1a3a2a] mb-3 text-sm">Change Team Names</h2>
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div>
-          <div className="text-xs font-semibold mb-1" style={{ color: teams[0].color }}>{teams[0].captain_name}&apos;s Team</div>
-          <input
-            value={name0}
-            onChange={e => setName0(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]"
-          />
-        </div>
-        <div>
-          <div className="text-xs font-semibold mb-1" style={{ color: teams[1].color }}>{teams[1].captain_name}&apos;s Team</div>
-          <input
-            value={name1}
-            onChange={e => setName1(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]"
-          />
-        </div>
+        {teams.map(team => (
+          <div key={team.id}>
+            <div className="text-xs font-semibold mb-1" style={{ color: team.color }}>
+              {team.captain_name}&apos;s Team
+            </div>
+            <input
+              value={names[team.id] ?? ''}
+              onChange={e => setNames(prev => ({ ...prev, [team.id]: e.target.value }))}
+              className="w-full border border-gray-200 rounded-lg px-2 py-2 text-sm outline-none focus:border-[#2d5a3d]"
+            />
+          </div>
+        ))}
       </div>
       <button
         onClick={save}
-        disabled={saving || !name0.trim() || !name1.trim()}
+        disabled={saving || teams.some(t => !names[t.id]?.trim())}
         className="w-full bg-[#2d5a3d] text-white py-2.5 rounded-xl font-bold text-sm disabled:opacity-40 transition-colors"
       >
         {saved ? '✓ Saved!' : saving ? 'Saving...' : 'Save Team Names'}
