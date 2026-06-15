@@ -290,20 +290,29 @@ function MatchCard({ match, round, team1, team2 }: {
         {/* Hole progress bar */}
         {status.holesPlayed > 0 && (
           <div className="mt-3">
-            <div className="flex gap-px h-1.5 rounded-full overflow-hidden bg-gray-100">
+            <div className="flex gap-1 flex-wrap">
               {Array.from({ length: round.holes }).map((_, i) => {
                 const holeScore = match.hole_scores.find(h => h.hole_number === i + 1)
                 const bgColor = holeScore?.winner === 'team1' ? team1?.color
                   : holeScore?.winner === 'team2' ? team2?.color
-                  : holeScore?.winner === 'halved' ? '#f59e0b'
+                  : holeScore?.winner === 'halved' ? '#e8c97a'
                   : '#e5e7eb'
-                return <div key={i} className="flex-1 transition-colors" style={{ backgroundColor: bgColor }} />
+                const textColor = holeScore?.winner === 'team1' || holeScore?.winner === 'team2' ? '#fff'
+                  : holeScore?.winner === 'halved' ? '#9a7a2e'
+                  : '#9ca3af'
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center justify-center rounded text-[9px] font-semibold transition-colors"
+                    style={{ backgroundColor: bgColor, color: textColor, width: 20, height: 20 }}
+                  >
+                    {i + 1}
+                  </div>
+                )
               })}
             </div>
-            <div className="flex justify-between mt-1 text-[10px] text-gray-400">
-              <span>{round.holes === 9 ? 'Hole 1' : 'Hole 1'}</span>
-              <span>{status.holesPlayed} / {round.holes} played</span>
-              <span>{round.holes === 9 ? 'Hole 9' : 'Hole 18'}</span>
+            <div className="mt-1 text-[10px] text-gray-400 text-center">
+              {status.holesPlayed} / {round.holes} played
             </div>
           </div>
         )}
