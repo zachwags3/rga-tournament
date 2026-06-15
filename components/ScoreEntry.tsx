@@ -156,7 +156,7 @@ export default function ScoreEntry({ matchId }: Props) {
   return (
     <div className="max-w-lg mx-auto px-4 pb-16">
       {/* Match header */}
-      <div className="bg-[#1a3a2a] rounded-2xl p-4 mb-5 shadow-lg">
+      <div className="bg-[#091540] rounded-2xl p-4 mb-5 shadow-lg">
         <div className="text-white/70 text-xs font-semibold tracking-widest uppercase mb-3 text-center">
           {round.name}
         </div>
