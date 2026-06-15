@@ -389,10 +389,8 @@ function HoleRow({
     ? { backgroundColor: team2Color + '14', borderColor: team2Color + '33' }
     : {}
 
-  const winDot = winner === 'team1'
-    ? <span style={{ color: team1Color }}>●</span>
-    : winner === 'team2'
-    ? <span style={{ color: team2Color }}>●</span>
+  const winDot = winner === 'team1' ? '⚪️'
+    : winner === 'team2' ? '🔵'
     : winner === 'halved' ? <span className="text-gray-400">—</span> : null
 
   return (
