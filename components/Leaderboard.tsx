@@ -132,7 +132,7 @@ export default function Leaderboard() {
       {/* Overall scoreboard */}
       <div className="bg-[#091540] rounded-2xl overflow-hidden shadow-sm mb-6 border-[5px]" style={{ borderColor }}>
         <div className="px-5 pt-5 pb-3 text-center">
-          <p className="text-white text-sm font-semibold tracking-widest uppercase mb-1">RGA Tournament 2026</p>
+          <p className="text-white text-sm font-semibold tracking-widest uppercase mb-1">Inaugural RGA Cup · 2026</p>
         </div>
         <div className="flex items-stretch">
           {/* Team 1 */}
