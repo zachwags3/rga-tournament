@@ -5,7 +5,7 @@ export default async function ScorePage({ params }: { params: Promise<{ matchId:
   const { matchId } = await params
   return (
     <div className="min-h-screen" style={{ background: 'var(--cream)' }}>
-      <header className="bg-[#1a3a2a] sticky top-0 z-10 shadow-md">
+      <header className="bg-[#091540] sticky top-0 z-10 shadow-md">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
           <Link href="/" className="text-white/60 hover:text-white transition-colors text-sm">
             ← Back
