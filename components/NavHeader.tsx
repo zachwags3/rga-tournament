@@ -8,7 +8,7 @@ export default function NavHeader() {
   const pathname = usePathname()
 
   return (
-    <header className="bg-[#1a3a2a] sticky top-0 z-10 shadow-md">
+    <header className="bg-[#1e3a8a] sticky top-0 z-10 shadow-md">
       <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between gap-2">
         {/* Nav buttons */}
         <div className="flex items-center gap-1">
