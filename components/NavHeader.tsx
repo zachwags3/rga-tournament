@@ -14,40 +14,40 @@ export default function NavHeader() {
         <div className="flex items-center gap-1">
           <Link
             href="/"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight ${
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            <div>2026</div>
-            <div>Scoreboard</div>
+            Scoreboard
           </Link>
           <Link
-            href="/history"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight ${
-              pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+            href="/feed"
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+              pathname === '/feed' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            <div>History</div>
+            Feed
           </Link>
           <Link
             href="/stats"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight ${
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            <div>Leader-</div>
-            <div>board</div>
+            Leaderboard
+          </Link>
+          <Link
+            href="/history"
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+              pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            History
           </Link>
         </div>
 
         {/* Right side */}
         <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/admin"
-            className="text-white/40 text-[10px] hover:text-white/70 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10 whitespace-nowrap"
-          >
-            Admin
-          </Link>
           <RefreshLogo />
         </div>
       </div>
