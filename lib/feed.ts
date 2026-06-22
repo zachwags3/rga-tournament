@@ -86,6 +86,10 @@ export function buildFeed(input: FeedInput): FeedPost[] {
     const oppFor = (s: Side) => (s === 'team1' ? t2Names : t1Names)
     const colorForSide = (s: Side) =>
       colorFor(s === 'team1' ? match.team1_id : match.team2_id)
+    // Singular subject (singles match) -> singular verbs ("wins", "closes out").
+    const single = (s: Side) =>
+      (s === 'team1' ? match.team1_player_names : match.team2_player_names).length === 1
+    const v = (s: Side, singular: string, plural: string) => (single(s) ? singular : plural)
 
     const pars = parsByRound[match.round_id] ?? {}
 
@@ -136,8 +140,8 @@ export function buildFeed(input: FeedInput): FeedPost[] {
         matchClosed = true
         const margin = Math.abs(holesUp)
         const text = remaining > 0
-          ? `${namesFor(side)} close out ${oppFor(side)}, ${margin}&${remaining}.`
-          : `${namesFor(side)} beat ${oppFor(side)} ${margin} UP.`
+          ? `${namesFor(side)} ${v(side, 'closes', 'close')} out ${oppFor(side)}, ${margin}&${remaining}.`
+          : `${namesFor(side)} ${v(side, 'beats', 'beat')} ${oppFor(side)} ${margin} UP.`
         pushResult({ id: `${idBase}-result`, ts, borderColor: colorForSide(side), text }, side)
         continue
       }
@@ -154,7 +158,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
           id: `${idBase}-ace`,
           ts,
           borderColor: colorForSide(side),
-          text: `Ace. ${namesFor(side)} hole out on the ${ordinal(h.hole_number)} ${clause}.${streakNote}`,
+          text: `Ace. ${namesFor(side)} ${v(side, 'holes', 'hole')} out on the ${ordinal(h.hole_number)} ${clause}.${streakNote}`,
         })
       } else if (diff != null && diff <= -2) {
         const label = diff <= -3 ? 'albatross' : 'eagle'
@@ -162,7 +166,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
           id: `${idBase}-eagle`,
           ts,
           borderColor: colorForSide(side),
-          text: `${namesFor(side)} make ${label} on the ${ordinal(h.hole_number)} ${clause}.${streakNote}`,
+          text: `${namesFor(side)} ${v(side, 'makes', 'make')} ${label} on the ${ordinal(h.hole_number)} ${clause}.${streakNote}`,
         })
       } else {
         const shot = diff === -1 ? ' with a birdie' : ''
@@ -170,7 +174,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
           id: `${idBase}-hole`,
           ts,
           borderColor: colorForSide(side),
-          text: `${namesFor(side)} win hole ${h.hole_number}${shot} ${clause}.${streakNote}`,
+          text: `${namesFor(side)} ${v(side, 'wins', 'win')} hole ${h.hole_number}${shot} ${clause}.${streakNote}`,
         })
       }
     }
@@ -194,7 +198,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
           id: `${match.id}-result`,
           ts,
           borderColor: colorForSide(side),
-          text: `${namesFor(side)} beat ${oppFor(side)} ${Math.abs(holesUp)} UP.`,
+          text: `${namesFor(side)} ${v(side, 'beats', 'beat')} ${oppFor(side)} ${Math.abs(holesUp)} UP.`,
         }, side)
       }
     }
@@ -225,7 +229,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
             ts: hole9.created_at,
             borderColor: colorForSide(leadSide),
             label: 'Front 9',
-            text: `${namesFor(leadSide)} lead by ${Math.abs(up)} through the front nine.`,
+            text: `${namesFor(leadSide)} ${v(leadSide, 'leads', 'lead')} by ${Math.abs(up)} through the front nine.`,
           })
         }
       }
@@ -248,7 +252,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
           id: `${match.id}-result`,
           ts,
           borderColor: colorForSide(side),
-          text: `${namesFor(side)} beat ${oppFor(side)}.`,
+          text: `${namesFor(side)} ${v(side, 'beats', 'beat')} ${oppFor(side)}.`,
         }, side)
       }
     }
