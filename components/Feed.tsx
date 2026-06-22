@@ -5,6 +5,20 @@ import { supabase } from '@/lib/supabase'
 import { buildFeed, formatFeedTime, type FeedPost } from '@/lib/feed'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
+// Lighten only dark, low-saturation (gray) borders so they read distinctly from
+// navy in the feed — navy and the light A/S neutral are left untouched.
+function feedBorderColor(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return hex
+  const n = parseInt(m[1], 16)
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  const isGray = Math.max(r, g, b) - Math.min(r, g, b) <= 40
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b
+  if (!isGray || luminance >= 170) return hex
+  const blend = (c: number) => Math.round(c + (255 - c) * 0.3)
+  return `#${[blend(r), blend(g), blend(b)].map(c => c.toString(16).padStart(2, '0')).join('')}`
+}
+
 export default function Feed() {
   const [posts, setPosts] = useState<FeedPost[]>([])
   const [loading, setLoading] = useState(true)
@@ -73,8 +87,8 @@ export default function Feed() {
       {posts.map(post => (
         <div
           key={post.id}
-          className="bg-white rounded-xl shadow-sm border-[3px] px-4 py-3"
-          style={{ borderColor: post.borderColor }}
+          className="bg-white rounded-xl shadow-sm border-4 px-4 py-3"
+          style={{ borderColor: feedBorderColor(post.borderColor) }}
         >
           <p className="text-[#091540] text-sm leading-snug font-medium">{post.text}</p>
           <p className="text-[#091540]/40 text-xs mt-1">{formatFeedTime(post.ts)}</p>
