@@ -393,6 +393,32 @@ function HoleRow({
     : winner === 'team2' ? '🔵'
     : winner === 'halved' ? <span className="text-gray-400">—</span> : null
 
+  // Flat input ordering across all holes: hole h, field f -> (h-1)*2 + f
+  const t1Seq = (hole - 1) * 2
+  const t2Seq = (hole - 1) * 2 + 1
+
+  function focusSeq(seq: number) {
+    const el = document.querySelector<HTMLInputElement>(`[data-score-seq="${seq}"]`)
+    if (el && !el.disabled) {
+      el.focus()
+      el.select()
+    }
+  }
+
+  // Advance to the next box once the score looks complete. A lone "1" waits, since
+  // it may become 10–15; any 2–9 (or a 2+ digit value) jumps immediately.
+  function maybeAdvance(value: string, currentSeq: number) {
+    const n = value.trim()
+    if (n.length >= 2 || (n.length === 1 && Number(n) >= 2)) focusSeq(currentSeq + 1)
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>, currentSeq: number) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      focusSeq(currentSeq + 1)
+    }
+  }
+
   return (
     <div
       className={`grid grid-cols-[2rem_2rem_1fr_1fr_2.5rem] gap-1.5 items-center px-3 py-2.5 rounded-xl border ${rowBaseClass} transition-colors`}
@@ -404,8 +430,10 @@ function HoleRow({
       <div className="flex justify-center">
         <input
           type="number" min="1" max="15" inputMode="numeric"
+          data-score-seq={t1Seq}
           value={local.t1} disabled={isReadOnly} placeholder="—"
-          onChange={e => onChange(e.target.value, local.t2)}
+          onChange={e => { onChange(e.target.value, local.t2); maybeAdvance(e.target.value, t1Seq) }}
+          onKeyDown={e => onKeyDown(e, t1Seq)}
           onBlur={e => onBlur(e.target.value, local.t2)}
           className={scoreInputClasses(t1Score, par)}
           style={scoreInputStyle(t1Score, par, winner === 'team1', team1Color)}
@@ -415,8 +443,10 @@ function HoleRow({
       <div className="flex justify-center">
         <input
           type="number" min="1" max="15" inputMode="numeric"
+          data-score-seq={t2Seq}
           value={local.t2} disabled={isReadOnly} placeholder="—"
-          onChange={e => onChange(local.t1, e.target.value)}
+          onChange={e => { onChange(local.t1, e.target.value); maybeAdvance(e.target.value, t2Seq) }}
+          onKeyDown={e => onKeyDown(e, t2Seq)}
           onBlur={e => onBlur(local.t1, e.target.value)}
           className={scoreInputClasses(t2Score, par)}
           style={scoreInputStyle(t2Score, par, winner === 'team2', team2Color)}
