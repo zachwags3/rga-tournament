@@ -12,8 +12,8 @@ export default function RefreshLogo() {
       <Image
         src="/rga-logo.png"
         alt="RGA Logo — tap to refresh"
-        width={52}
-        height={52}
+        width={60}
+        height={60}
         className="drop-shadow-md"
       />
     </button>
