@@ -90,7 +90,7 @@ export default function Feed() {
           className="bg-white rounded-xl shadow-sm border-4 px-4 py-3"
           style={{ borderColor: feedBorderColor(post.borderColor) }}
         >
-          <p className="text-[#091540] text-sm leading-snug font-medium">{post.text}</p>
+          <p className="text-black text-sm leading-snug font-medium">{post.text}</p>
           <p className="text-[#091540]/40 text-xs mt-1">{formatFeedTime(post.ts)}</p>
         </div>
       ))}
