@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "cd /Users/zacharywagner/Desktop/rga-tournament && npx vercel deploy --prod --force 2>&1",
+            "timeout": 180,
+            "statusMessage": "Deploying to Vercel...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

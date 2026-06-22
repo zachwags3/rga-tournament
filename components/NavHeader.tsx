@@ -27,7 +27,6 @@ export default function NavHeader() {
               pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            <div>League</div>
             <div>History</div>
           </Link>
           <Link
