@@ -22,6 +22,7 @@ function feedBorderColor(hex: string): string {
 export default function Feed() {
   const [posts, setPosts] = useState<FeedPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [anyInProgress, setAnyInProgress] = useState(false)
 
   async function fetchAll() {
     const timeout = new Promise<null>(res => setTimeout(() => res(null), 5000))
@@ -54,6 +55,7 @@ export default function Feed() {
     }
 
     setPosts(buildFeed({ rounds, matches, holeScores, teams, parsByRound }))
+    setAnyInProgress(matches.some(m => m.status === 'in_progress'))
     setLoading(false)
   }
 
@@ -68,32 +70,43 @@ export default function Feed() {
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  if (loading) {
-    return <p className="text-[#091540]/50 text-sm text-center py-8">Loading feed…</p>
-  }
-
-  if (posts.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-        <p className="text-[#091540]/50 text-sm">
-          No scores yet — entries will appear here live once play begins.
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex flex-col gap-3">
-      {posts.map(post => (
-        <div
-          key={post.id}
-          className="bg-white rounded-xl shadow-sm border-4 px-4 py-3"
-          style={{ borderColor: feedBorderColor(post.borderColor) }}
-        >
-          <p className="text-black text-sm leading-snug font-medium">{post.text}</p>
-          <p className="text-[#091540]/40 text-xs mt-1">{formatFeedTime(post.ts)}</p>
+    <>
+      {/* Heading with live indicator: pulsing red when a match is underway, gray otherwise */}
+      <div className="flex items-center gap-2.5 mb-6">
+        <span className="relative flex h-3 w-3">
+          {anyInProgress && (
+            <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
+          )}
+          <span
+            className={`relative inline-flex h-3 w-3 rounded-full ${anyInProgress ? 'bg-red-500' : 'bg-gray-400'}`}
+          />
+        </span>
+        <h1 className="text-2xl font-bold text-[#091540]">Live Feed</h1>
+      </div>
+
+      {loading ? (
+        <p className="text-[#091540]/50 text-sm text-center py-8">Loading feed…</p>
+      ) : posts.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+          <p className="text-[#091540]/50 text-sm">
+            No scores yet — entries will appear here live once play begins.
+          </p>
         </div>
-      ))}
-    </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {posts.map(post => (
+            <div
+              key={post.id}
+              className="bg-white rounded-xl shadow-sm border-4 px-4 py-3"
+              style={{ borderColor: feedBorderColor(post.borderColor) }}
+            >
+              <p className="text-black text-sm leading-snug font-medium">{post.text}</p>
+              <p className="text-[#091540]/40 text-xs mt-1">{formatFeedTime(post.ts)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   )
 }
