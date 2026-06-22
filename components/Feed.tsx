@@ -103,20 +103,20 @@ export default function Feed() {
                 className="rounded-xl shadow-sm border-4 px-4 py-3"
                 style={{
                   borderColor: border,
-                  backgroundColor: post.isResult ? `${post.borderColor}14` : '#ffffff',
+                  backgroundColor: post.label ? `${post.borderColor}14` : '#ffffff',
                 }}
               >
-                {post.isResult && (
+                {post.label && (
                   <p
                     className="text-[10px] font-bold uppercase tracking-widest mb-1"
                     style={{ color: '#091540' }}
                   >
-                    Final
+                    {post.label}
                   </p>
                 )}
                 <p
                   className={`text-black leading-snug ${
-                    post.isResult ? 'text-[15px] font-bold' : 'text-sm font-medium'
+                    post.emphasis ? 'text-[15px] font-bold' : 'text-sm font-medium'
                   }`}
                 >
                   {post.text}

@@ -5,7 +5,8 @@ export type FeedPost = {
   ts: string // ISO timestamp for sorting + display
   borderColor: string
   text: string
-  isResult?: boolean // closeout / final / halve — gets emphasized styling
+  label?: string // uppercase badge ("Final", "Front 9") — also triggers a tinted card
+  emphasis?: boolean // bolder/larger text (used for results)
 }
 
 type Side = 'team1' | 'team2'
@@ -101,7 +102,8 @@ export function buildFeed(input: FeedInput): FeedPost[] {
     let matchClosed = false
 
     const pushResult = (post: FeedPost, winner: Side | 'halved') => {
-      post.isResult = true
+      post.label = 'Final'
+      post.emphasis = true
       posts.push(post)
       resultRefs.push({ post, winner, t1Id: match.team1_id, t2Id: match.team2_id })
     }
@@ -213,6 +215,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
             id: `${match.id}-turn`,
             ts: hole9.created_at,
             borderColor: NEUTRAL_BORDER,
+            label: 'Front 9',
             text: `${t1Names} and ${t2Names} are all square through the front nine.`,
           })
         } else {
@@ -221,6 +224,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
             id: `${match.id}-turn`,
             ts: hole9.created_at,
             borderColor: colorForSide(leadSide),
+            label: 'Front 9',
             text: `${namesFor(leadSide)} lead by ${Math.abs(up)} through the front nine.`,
           })
         }
