@@ -95,16 +95,36 @@ export default function Feed() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {posts.map(post => (
-            <div
-              key={post.id}
-              className="bg-white rounded-xl shadow-sm border-4 px-4 py-3"
-              style={{ borderColor: feedBorderColor(post.borderColor) }}
-            >
-              <p className="text-black text-sm leading-snug font-medium">{post.text}</p>
-              <p className="text-[#091540]/40 text-xs mt-1">{formatFeedTime(post.ts)}</p>
-            </div>
-          ))}
+          {posts.map(post => {
+            const border = feedBorderColor(post.borderColor)
+            return (
+              <div
+                key={post.id}
+                className="rounded-xl shadow-sm border-4 px-4 py-3"
+                style={{
+                  borderColor: border,
+                  backgroundColor: post.isResult ? `${post.borderColor}14` : '#ffffff',
+                }}
+              >
+                {post.isResult && (
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                    style={{ color: '#091540' }}
+                  >
+                    Final
+                  </p>
+                )}
+                <p
+                  className={`text-black leading-snug ${
+                    post.isResult ? 'text-[15px] font-bold' : 'text-sm font-medium'
+                  }`}
+                >
+                  {post.text}
+                </p>
+                <p className="text-[#091540]/40 text-xs mt-1">{formatFeedTime(post.ts)}</p>
+              </div>
+            )
+          })}
         </div>
       )}
     </>

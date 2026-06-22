@@ -5,6 +5,7 @@ export type FeedPost = {
   ts: string // ISO timestamp for sorting + display
   borderColor: string
   text: string
+  isResult?: boolean // closeout / final / halve — gets emphasized styling
 }
 
 type Side = 'team1' | 'team2'
@@ -100,6 +101,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
     let matchClosed = false
 
     const pushResult = (post: FeedPost, winner: Side | 'halved') => {
+      post.isResult = true
       posts.push(post)
       resultRefs.push({ post, winner, t1Id: match.team1_id, t2Id: match.team2_id })
     }
