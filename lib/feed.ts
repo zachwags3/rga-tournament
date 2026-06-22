@@ -39,17 +39,35 @@ function joinNames(names: string[]): string {
   return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
 }
 
+function fmtPts(n: number): string {
+  return n % 1 === 0 ? String(n) : n.toFixed(1)
+}
+
+// Cumulative RGA team standing, e.g. "Gray up 2-0" or "Tied 1-1".
+function rgaStanding(teamPoints: Record<string, number>, teams: Team[]): string {
+  const a = teams[0]
+  const b = teams[1]
+  if (!a || !b) return ''
+  const pa = teamPoints[a.id] ?? 0
+  const pb = teamPoints[b.id] ?? 0
+  if (pa > pb) return `${a.name} up ${fmtPts(pa)}-${fmtPts(pb)}`
+  if (pb > pa) return `${b.name} up ${fmtPts(pb)}-${fmtPts(pa)}`
+  return `Tied ${fmtPts(pa)}-${fmtPts(pb)}`
+}
+
 // Describe the new match standing from the perspective of the side that just won the hole.
-function standingClause(newHolesUp: number, winner: Side): string {
+function standingClause(newHolesUp: number, winner: Side, holeNumber: number): string {
   const margin = winner === 'team1' ? newHolesUp : -newHolesUp
-  if (margin > 0) return `to go ${margin} up`
-  if (margin === 0) return `to draw all square`
+  if (margin > 0) return `to go ${margin} UP`
+  if (margin === 0) return `to tie it up, A/S thru ${holeNumber}`
   return `to within ${Math.abs(margin)}`
 }
 
 export function buildFeed(input: FeedInput): FeedPost[] {
   const { rounds, matches, holeScores, teams, parsByRound } = input
   const posts: FeedPost[] = []
+  // Result posts get a running RGA standing appended after the full chronology is known.
+  const resultRefs: { post: FeedPost; winner: Side | 'halved'; t1Id: string; t2Id: string }[] = []
 
   const colorFor = (id: string | null): string =>
     (id && teams.find(t => t.id === id)?.color) || NEUTRAL_BORDER
@@ -81,7 +99,14 @@ export function buildFeed(input: FeedInput): FeedPost[] {
     let streakLen = 0
     let matchClosed = false
 
+    const pushResult = (post: FeedPost, winner: Side | 'halved') => {
+      posts.push(post)
+      resultRefs.push({ post, winner, t1Id: match.team1_id, t2Id: match.team2_id })
+    }
+
     for (const h of scores) {
+      if (matchClosed) break // match already decided — stop posting further holes
+
       decided++
       const remaining = round.holes - decided
 
@@ -101,27 +126,15 @@ export function buildFeed(input: FeedInput): FeedPost[] {
       const ts = h.created_at
       const idBase = `${match.id}-h${h.hole_number}`
 
-      // 1) Closeout / final-hole result takes precedence over a generic hole post
-      const isCloseout = !matchClosed && Math.abs(holesUp) > remaining && remaining >= 0
-      const isFinalHole = decided === round.holes
-      if (isCloseout || (isFinalHole && !matchClosed)) {
+      // 1) Result (closeout or final-hole win) takes precedence over a generic hole post
+      const isCloseout = Math.abs(holesUp) > remaining && remaining >= 0
+      if (isCloseout) {
         matchClosed = true
         const margin = Math.abs(holesUp)
-        if (isCloseout && remaining > 0) {
-          posts.push({
-            id: `${idBase}-result`,
-            ts,
-            borderColor: colorForSide(side),
-            text: `${namesFor(side)} close out ${oppFor(side)}, ${margin}&${remaining}.`,
-          })
-        } else {
-          posts.push({
-            id: `${idBase}-result`,
-            ts,
-            borderColor: colorForSide(side),
-            text: `${namesFor(side)} beat ${oppFor(side)} ${margin} up.`,
-          })
-        }
+        const text = remaining > 0
+          ? `${namesFor(side)} close out ${oppFor(side)}, ${margin}&${remaining}.`
+          : `${namesFor(side)} beat ${oppFor(side)} ${margin} UP.`
+        pushResult({ id: `${idBase}-result`, ts, borderColor: colorForSide(side), text }, side)
         continue
       }
 
@@ -129,7 +142,7 @@ export function buildFeed(input: FeedInput): FeedPost[] {
       const winScore = side === 'team1' ? h.team1_score : h.team2_score
       const par = pars[h.hole_number] ?? null
       const diff = par != null && winScore != null ? winScore - par : null
-      const clause = standingClause(holesUp, side)
+      const clause = standingClause(holesUp, side, h.hole_number)
       const streakNote = streakLen >= 2 ? ` That's ${numWord(streakLen)} in a row.` : ''
 
       if (winScore === 1) {
@@ -158,13 +171,36 @@ export function buildFeed(input: FeedInput): FeedPost[] {
       }
     }
 
+    // Match ran the full distance without clinching early (e.g. won/halved on the last hole)
+    if (!matchClosed && decided === round.holes) {
+      const last = scores[scores.length - 1]
+      const ts = last?.created_at ?? match.created_at
+      if (holesUp === 0) {
+        matchClosed = true
+        pushResult({
+          id: `${match.id}-result`,
+          ts,
+          borderColor: NEUTRAL_BORDER,
+          text: `${t1Names} and ${t2Names} halve their match.`,
+        }, 'halved')
+      } else {
+        const side: Side = holesUp > 0 ? 'team1' : 'team2'
+        matchClosed = true
+        pushResult({
+          id: `${match.id}-result`,
+          ts,
+          borderColor: colorForSide(side),
+          text: `${namesFor(side)} beat ${oppFor(side)} ${Math.abs(holesUp)} UP.`,
+        }, side)
+      }
+    }
+
     // 3) Turn (front nine) summary — 18-hole rounds only, once hole 9 is in and the
-    // match hadn't already been closed before reaching the turn.
+    // match hadn't already been clinched before reaching the turn.
     if (round.holes === 18) {
       const front = scores.filter(h => h.hole_number <= 9)
       const hole9 = front.find(h => h.hole_number === 9)
-      const closedBeforeTurn = matchClosed && decided <= 9
-      if (hole9 && !closedBeforeTurn) {
+      if (hole9) {
         let up = 0
         for (const h of front) {
           if (h.winner === 'team1') up++
@@ -189,28 +225,41 @@ export function buildFeed(input: FeedInput): FeedPost[] {
       }
     }
 
-    // 4) Fallback result if the match was finalized but no closeout/final post fired
-    // (e.g. finalized early by admin without the math closing it out).
-    if (match.status === 'complete' && match.result && !matchClosed) {
+    // 4) Safety net: match finalized by admin without the math clinching it
+    if (!matchClosed && match.status === 'complete' && match.result) {
       const last = scores[scores.length - 1]
       const ts = last?.created_at ?? match.created_at
       if (match.result === 'halved') {
-        posts.push({
+        pushResult({
           id: `${match.id}-result`,
           ts,
           borderColor: NEUTRAL_BORDER,
           text: `${t1Names} and ${t2Names} halve their match.`,
-        })
+        }, 'halved')
       } else {
         const side: Side = match.result === 'team1_win' ? 'team1' : 'team2'
-        posts.push({
+        pushResult({
           id: `${match.id}-result`,
           ts,
           borderColor: colorForSide(side),
-          text: `${namesFor(side)} win their match over ${oppFor(side)}.`,
-        })
+          text: `${namesFor(side)} beat ${oppFor(side)}.`,
+        }, side)
       }
     }
+  }
+
+  // Append cumulative RGA standing to each result, accumulating in completion order.
+  const teamPoints: Record<string, number> = {}
+  for (const r of [...resultRefs].sort((a, b) => new Date(a.post.ts).getTime() - new Date(b.post.ts).getTime())) {
+    if (r.winner === 'halved') {
+      teamPoints[r.t1Id] = (teamPoints[r.t1Id] ?? 0) + 0.5
+      teamPoints[r.t2Id] = (teamPoints[r.t2Id] ?? 0) + 0.5
+    } else {
+      const wid = r.winner === 'team1' ? r.t1Id : r.t2Id
+      teamPoints[wid] = (teamPoints[wid] ?? 0) + 1
+    }
+    const standing = rgaStanding(teamPoints, teams)
+    if (standing) r.post.text += ` ${standing}`
   }
 
   // Newest first; tie-break keeps later holes above earlier ones at the same instant.
