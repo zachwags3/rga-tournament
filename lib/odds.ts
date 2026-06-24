@@ -92,6 +92,23 @@ export function matchWinProbs(
   return { pA, pTie, pB }
 }
 
+// Three-way display line: keep the model's relative favoritism but show the tie
+// ("split") as a small 4–6% band (closer matchup -> nearer 6%, lopsided -> nearer
+// 4%), and let it shrink below that as a match nears clinching. All sum to 100%.
+export function displayLine(pA: number, pTie: number, pB: number): {
+  aPct: number; bPct: number; tiePct: number; pAd: number; pBd: number
+} {
+  const s = pA + pB > 0 ? pA / (pA + pB) : 0.5
+  const edge = Math.min(1, Math.abs(s - 0.5) * 2)
+  const band = 0.06 - 0.02 * edge // 6% even -> 4% lopsided
+  const tie = Math.min(band, pTie) // don't show a tie bigger than reality near clinch
+  const pAd = s * (1 - tie)
+  const pBd = (1 - s) * (1 - tie)
+  const aPct = Math.round(pAd * 100)
+  const bPct = Math.round(pBd * 100)
+  return { aPct, bPct, tiePct: 100 - aPct - bPct, pAd, pBd }
+}
+
 // Fair American moneyline from a win probability (no vig).
 export function toAmerican(p: number): string {
   if (p >= 0.999) return '-100000'

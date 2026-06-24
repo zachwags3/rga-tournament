@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, matchWinProbs, toAmerican, pct } from '@/lib/odds'
+import { effectiveRatings, matchWinProbs, displayLine, toAmerican } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -87,13 +87,11 @@ export default function Odds() {
                   const tag = done ? 'FINAL' : live ? 'LIVE' : 'OPENING LINE'
                   const tagColor = done ? 'text-[#091540]/40' : live ? 'text-red-500' : 'text-[#091540]/40'
 
-                  // Head-to-head: drop the tie, normalize the two sides to sum to 100%.
-                  const denom = probs.pA + probs.pB
-                  const pAn = denom > 0 ? probs.pA / denom : 0.5
-                  const aPct = Math.round(pAn * 100)
+                  // Three-way: two sides + a small split, all summing to 100%.
+                  const line = displayLine(probs.pA, probs.pTie, probs.pB)
                   const rows = [
-                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), p: pAn, pctNum: aPct, winner: status.winner === 'team1' },
-                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), p: 1 - pAn, pctNum: 100 - aPct, winner: status.winner === 'team2' },
+                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), p: line.pAd, pctNum: line.aPct, winner: status.winner === 'team1' },
+                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), p: line.pBd, pctNum: line.bPct, winner: status.winner === 'team2' },
                   ]
 
                   return (
@@ -134,8 +132,8 @@ export default function Odds() {
                         </div>
                       ))}
 
-                      {!done && probs.pTie > 0.005 && (
-                        <p className="text-[11px] text-[#091540]/40 mt-1">Split {pct(probs.pTie)}</p>
+                      {!done && line.tiePct > 0 && (
+                        <p className="text-[11px] text-[#091540]/40 mt-1">Split {line.tiePct}%</p>
                       )}
                     </div>
                   )
