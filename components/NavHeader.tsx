@@ -26,11 +26,14 @@ export default function NavHeader() {
   return (
     <header className="bg-[#091540] sticky top-0 z-10 shadow-md">
       <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between gap-2">
-        {/* Nav buttons */}
-        <div className="flex items-center gap-1">
+        {/* Nav buttons — scrollable row so it never clips on small phones */}
+        <div
+          className="flex items-center gap-0.5 overflow-x-auto min-w-0 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: 'none' }}
+        >
           <Link
             href="/"
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -38,7 +41,7 @@ export default function NavHeader() {
           </Link>
           <Link
             href="/feed"
-            className={`relative px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+            className={`relative px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/feed' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -51,8 +54,16 @@ export default function NavHeader() {
             )}
           </Link>
           <Link
+            href="/odds"
+            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+              pathname === '/odds' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Odds
+          </Link>
+          <Link
             href="/stats"
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -60,7 +71,7 @@ export default function NavHeader() {
           </Link>
           <Link
             href="/history"
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
