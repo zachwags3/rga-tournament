@@ -1,11 +1,13 @@
 import { ratingFor } from './players'
 
 // --- Tunable feel constants -------------------------------------------------
-const SCALE = 40 // bigger = closer odds for a given rating gap
+const SCALE = 60 // bigger = closer odds for a given rating gap
 const HALVE = 0.42 // baseline probability a hole is halved
-const SYNERGY = 3 // scramble/shamble: a pair plays better than either alone
-const W_MAX = 0.6 // weight on the stronger partner
-const W_MIN = 0.4 // weight on the weaker partner
+const SYNERGY = 2 // scramble/shamble: a pair plays a touch better than its parts
+// Weight the WEAKER partner more: a bad partner drags a scramble, so a lone stud
+// + weak player is rated below a balanced pair of the same average.
+const W_MAX = 0.32 // weight on the stronger partner
+const W_MIN = 0.68 // weight on the weaker partner
 // ---------------------------------------------------------------------------
 
 const logistic = (x: number) => 1 / (1 + Math.exp(-x))
