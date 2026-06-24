@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { sideRating, matchWinProbs, toAmerican, pct } from '@/lib/odds'
+import { effectiveRatings, matchWinProbs, toAmerican, pct } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -79,8 +79,7 @@ export default function Odds() {
               <div className="flex flex-col gap-3">
                 {round.matches.map(match => {
                   const status = calcMatchPlayStatus(match.hole_scores, round.holes)
-                  const rA = sideRating(match.team1_player_names)
-                  const rB = sideRating(match.team2_player_names)
+                  const { rA, rB } = effectiveRatings(match.team1_player_names, match.team2_player_names)
                   const probs = matchWinProbs(rA, rB, status.holesUp, status.holesRemaining)
                   const live = match.status === 'in_progress'
                   const done = status.isComplete || match.status === 'complete'

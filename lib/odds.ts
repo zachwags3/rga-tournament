@@ -12,6 +12,34 @@ const W_MIN = 0.68 // weight on the weaker partner
 
 const logistic = (x: number) => 1 / (1 + Math.exp(-x))
 
+// Manual per-matchup overrides for lines Zach wants pinned regardless of the model.
+// `even` forces a 50/50 opening; the model still moves it live from there.
+type Override = { a: string[]; b: string[]; mode: 'even' }
+const OVERRIDES: Override[] = [
+  { a: ['zach', 'danny'], b: ['jack', 'sam'], mode: 'even' },
+]
+
+const namesKey = (arr: string[]) => arr.map(s => s.trim().toLowerCase()).sort().join('|')
+
+// Effective side ratings for a matchup, applying any override (order-independent).
+export function effectiveRatings(team1: string[], team2: string[]): { rA: number; rB: number } {
+  const r1 = sideRating(team1)
+  const r2 = sideRating(team2)
+  const k1 = namesKey(team1)
+  const k2 = namesKey(team2)
+  for (const o of OVERRIDES) {
+    const oa = namesKey(o.a)
+    const ob = namesKey(o.b)
+    if ((k1 === oa && k2 === ob) || (k1 === ob && k2 === oa)) {
+      if (o.mode === 'even') {
+        const mid = (r1 + r2) / 2
+        return { rA: mid, rB: mid }
+      }
+    }
+  }
+  return { rA: r1, rB: r2 }
+}
+
 // Combine a side's player ratings into one number.
 export function sideRating(names: string[]): number {
   const rs = names.map(ratingFor)
