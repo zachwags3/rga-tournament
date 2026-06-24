@@ -1,0 +1,74 @@
+import { ratingFor } from './players'
+
+// --- Tunable feel constants -------------------------------------------------
+const SCALE = 40 // bigger = closer odds for a given rating gap
+const HALVE = 0.42 // baseline probability a hole is halved
+const SYNERGY = 3 // scramble/shamble: a pair plays better than either alone
+const W_MAX = 0.6 // weight on the stronger partner
+const W_MIN = 0.4 // weight on the weaker partner
+// ---------------------------------------------------------------------------
+
+const logistic = (x: number) => 1 / (1 + Math.exp(-x))
+
+// Combine a side's player ratings into one number.
+export function sideRating(names: string[]): number {
+  const rs = names.map(ratingFor)
+  if (rs.length === 0) return 55
+  if (rs.length === 1) return rs[0]
+  const max = Math.max(...rs)
+  const min = Math.min(...rs)
+  return W_MAX * max + W_MIN * min + SYNERGY
+}
+
+// Probability side A wins a single hole (the rest split between B-win and halve).
+function holeWinProb(rA: number, rB: number): number {
+  return (1 - HALVE) * logistic((rA - rB) / SCALE)
+}
+
+export type WinProbs = { pA: number; pTie: number; pB: number }
+
+// Distribution of the match result given current lead (holesUp, + favors A) and
+// holes remaining. Rolls the per-hole outcomes forward — a clinched match falls
+// out naturally (remaining holes can't flip a lead bigger than what's left).
+export function matchWinProbs(
+  rA: number,
+  rB: number,
+  holesUp: number,
+  remaining: number
+): WinProbs {
+  const pWinA = holeWinProb(rA, rB)
+  const pWinB = holeWinProb(rB, rA)
+  const pHalve = 1 - pWinA - pWinB
+
+  let dist = new Map<number, number>([[holesUp, 1]])
+  for (let i = 0; i < remaining; i++) {
+    const next = new Map<number, number>()
+    const bump = (net: number, prob: number) =>
+      next.set(net, (next.get(net) ?? 0) + prob)
+    for (const [net, prob] of dist) {
+      bump(net + 1, prob * pWinA)
+      bump(net, prob * pHalve)
+      bump(net - 1, prob * pWinB)
+    }
+    dist = next
+  }
+
+  let pA = 0, pTie = 0, pB = 0
+  for (const [net, prob] of dist) {
+    if (net > 0) pA += prob
+    else if (net < 0) pB += prob
+    else pTie += prob
+  }
+  return { pA, pTie, pB }
+}
+
+// Fair American moneyline from a win probability (no vig).
+export function toAmerican(p: number): string {
+  if (p >= 0.999) return '-100000'
+  if (p <= 0.001) return '+100000'
+  const round5 = (x: number) => Math.round(x / 5) * 5
+  if (p >= 0.5) return `-${round5((100 * p) / (1 - p))}`
+  return `+${round5((100 * (1 - p)) / p)}`
+}
+
+export const pct = (p: number) => `${Math.round(p * 100)}%`
