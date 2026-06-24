@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, liveProbs, displayLine, toAmerican } from '@/lib/odds'
+import { effectiveRatings, liveProbs, displayLine, toAmerican, cupProbs } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -68,27 +68,61 @@ export default function Odds() {
       {!loading && (() => {
         const gray = teams.find(t => t.name.toLowerCase().includes('gray')) ?? teams[0]
         const navy = teams.find(t => t.name.toLowerCase().includes('navy')) ?? teams[1]
-        // Pinned overall line: Gray slightly favored, 2% split.
-        const cup = [
-          { team: gray, p: 0.51 },
-          { team: navy, p: 0.47 },
+
+        // Live Cup line: aggregate every match's current outcome probability.
+        const mps: { pGray: number; pTie: number; pNavy: number }[] = []
+        for (const round of rounds) {
+          for (const m of round.matches) {
+            if (!m.team1_id || !m.team2_id) continue
+            if (!m.team1_player_names?.length || !m.team2_player_names?.length) continue
+            const st = calcMatchPlayStatus(m.hole_scores, round.holes)
+            const complete = st.isComplete || m.status === 'complete'
+            let p1: number, pt: number, p2: number
+            if (complete) {
+              const w = st.isComplete
+                ? st.winner
+                : m.result === 'team1_win' ? 'team1' : m.result === 'team2_win' ? 'team2' : 'halved'
+              p1 = w === 'team1' ? 1 : 0
+              p2 = w === 'team2' ? 1 : 0
+              pt = w === 'halved' ? 1 : 0
+            } else {
+              const { rA, rB } = effectiveRatings(m.team1_player_names, m.team2_player_names)
+              const lp = liveProbs(rA, rB, st.holesUp, st.holesRemaining, round.holes)
+              p1 = lp.pA; pt = lp.pTie; p2 = lp.pB
+            }
+            const t1Gray = m.team1_id === gray?.id
+            mps.push(t1Gray ? { pGray: p1, pTie: pt, pNavy: p2 } : { pGray: p2, pTie: pt, pNavy: p1 })
+          }
+        }
+
+        const cup = cupProbs(mps)
+        // Display: cap the split (max 2%, shrinks near a decided cup), sides sum to 100.
+        const s = cup.pGray + cup.pNavy > 0 ? cup.pGray / (cup.pGray + cup.pNavy) : 0.5
+        const tie = Math.min(0.02, cup.pTie)
+        const gP = Math.round(s * (1 - tie) * 100)
+        const nP = Math.round((1 - s) * (1 - tie) * 100)
+        const tP = 100 - gP - nP
+        const cupRows = [
+          { team: gray, p: s * (1 - tie), pctNum: gP },
+          { team: navy, p: (1 - s) * (1 - tie), pctNum: nP },
         ]
+
         return (
           <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-3 mb-6">
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Cup Winner</p>
-            {cup.map((c, i) => (
+            {cupRows.map((c, i) => (
               <div key={i} className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.team?.color ?? '#9ca3af' }} />
                   <span className="text-sm font-semibold text-white">{c.team?.name ?? '—'}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-white tabular-nums w-10 text-right">{Math.round(c.p * 100)}%</span>
+                  <span className="text-sm font-bold text-white tabular-nums w-10 text-right">{c.pctNum}%</span>
                   <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{toAmerican(c.p)}</span>
                 </div>
               </div>
             ))}
-            <p className="text-[11px] text-white/40 mt-1">Split 2%</p>
+            {tP > 0 && <p className="text-[11px] text-white/40 mt-1">Split {tP}%</p>}
           </div>
         )
       })()}

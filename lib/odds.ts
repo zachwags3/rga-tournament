@@ -132,6 +132,35 @@ export function displayLine(pA: number, pTie: number, pB: number): {
   return { aPct, bPct, tiePct: 100 - aPct - bPct, pAd, pBd }
 }
 
+// Aggregate per-match outcome probabilities into Cup (overall) win probabilities.
+// Each match is worth 1 point; a team wins the Cup with more than half the points.
+// Convolves the points distribution (tracked in half-point units -> integer *2).
+export type CupProbs = { pGray: number; pTie: number; pNavy: number }
+export function cupProbs(
+  matches: { pGray: number; pTie: number; pNavy: number }[]
+): CupProbs {
+  if (matches.length === 0) return { pGray: 0.5, pTie: 0, pNavy: 0.5 }
+  let dist = new Map<number, number>([[0, 1]]) // key = gray points * 2
+  for (const m of matches) {
+    const next = new Map<number, number>()
+    const add = (k: number, v: number) => next.set(k, (next.get(k) ?? 0) + v)
+    for (const [k, prob] of dist) {
+      add(k + 2, prob * m.pGray) // gray wins -> +1 pt
+      add(k + 1, prob * m.pTie) // halved -> +0.5 each
+      add(k + 0, prob * m.pNavy) // navy wins -> +0
+    }
+    dist = next
+  }
+  const N = matches.length // total points; threshold N/2 -> key N in *2 units
+  let pGray = 0, pTie = 0, pNavy = 0
+  for (const [k, prob] of dist) {
+    if (k > N) pGray += prob
+    else if (k < N) pNavy += prob
+    else pTie += prob
+  }
+  return { pGray, pTie, pNavy }
+}
+
 // Fair American moneyline from a win probability (no vig).
 export function toAmerican(p: number): string {
   if (p >= 0.999) return '-100000'
