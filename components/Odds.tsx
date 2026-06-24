@@ -88,9 +88,13 @@ export default function Odds() {
                   const tag = done ? 'FINAL' : live ? 'LIVE' : 'OPENING LINE'
                   const tagColor = done ? 'text-[#091540]/40' : live ? 'text-red-500' : 'text-[#091540]/40'
 
+                  // Head-to-head: drop the tie, normalize the two sides to sum to 100%.
+                  const denom = probs.pA + probs.pB
+                  const pAn = denom > 0 ? probs.pA / denom : 0.5
+                  const aPct = Math.round(pAn * 100)
                   const rows = [
-                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), p: probs.pA, winner: status.winner === 'team1' },
-                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), p: probs.pB, winner: status.winner === 'team2' },
+                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), p: pAn, pctNum: aPct, winner: status.winner === 'team1' },
+                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), p: 1 - pAn, pctNum: 100 - aPct, winner: status.winner === 'team2' },
                   ]
 
                   return (
@@ -123,7 +127,7 @@ export default function Odds() {
                               </span>
                             ) : (
                               <>
-                                <span className="text-sm font-bold text-[#091540] tabular-nums w-10 text-right">{pct(row.p)}</span>
+                                <span className="text-sm font-bold text-[#091540] tabular-nums w-10 text-right">{row.pctNum}%</span>
                                 <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums w-14 text-right">{toAmerican(row.p)}</span>
                               </>
                             )}
@@ -131,8 +135,8 @@ export default function Odds() {
                         </div>
                       ))}
 
-                      {!done && probs.pTie > 0.02 && (
-                        <p className="text-[11px] text-[#091540]/40 mt-1">Tie {pct(probs.pTie)}</p>
+                      {!done && probs.pTie > 0.005 && (
+                        <p className="text-[11px] text-[#091540]/40 mt-1">Split {pct(probs.pTie)}</p>
                       )}
                     </div>
                   )
