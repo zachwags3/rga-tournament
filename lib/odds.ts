@@ -92,6 +92,29 @@ export function matchWinProbs(
   return { pA, pTie, pB }
 }
 
+// Dampened live odds: blend the live position toward the opening line so a single
+// hole doesn't swing the number too hard. The blend tightens toward the true live
+// model as the round progresses (RESPONSIVENESS at hole 1 -> full by the last hole).
+const RESPONSIVENESS = 0.35
+export function liveProbs(
+  rA: number,
+  rB: number,
+  holesUp: number,
+  remaining: number,
+  totalHoles: number
+): WinProbs {
+  const live = matchWinProbs(rA, rB, holesUp, remaining)
+  const open = matchWinProbs(rA, rB, 0, totalHoles)
+  const played = totalHoles - remaining
+  const w = Math.min(1, RESPONSIVENESS + (1 - RESPONSIVENESS) * (played / totalHoles))
+  const b = (l: number, o: number) => o + (l - o) * w
+  let pA = b(live.pA, open.pA)
+  let pTie = b(live.pTie, open.pTie)
+  let pB = b(live.pB, open.pB)
+  const s = pA + pTie + pB || 1
+  return { pA: pA / s, pTie: pTie / s, pB: pB / s }
+}
+
 // Three-way display line: keep the model's relative favoritism but show the tie
 // ("split") as a small 4–6% band (closer matchup -> nearer 6%, lopsided -> nearer
 // 4%), and let it shrink below that as a match nears clinching. All sum to 100%.

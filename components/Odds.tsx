@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, matchWinProbs, displayLine, toAmerican } from '@/lib/odds'
+import { effectiveRatings, liveProbs, displayLine, toAmerican } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -65,6 +65,34 @@ export default function Odds() {
         Live win odds — model estimate, for entertainment only.
       </p>
 
+      {!loading && (() => {
+        const gray = teams.find(t => t.name.toLowerCase().includes('gray')) ?? teams[0]
+        const navy = teams.find(t => t.name.toLowerCase().includes('navy')) ?? teams[1]
+        // Pinned overall line: Gray slightly favored, 2% split.
+        const cup = [
+          { team: gray, p: 0.51 },
+          { team: navy, p: 0.47 },
+        ]
+        return (
+          <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-3 mb-6">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Cup Winner</p>
+            {cup.map((c, i) => (
+              <div key={i} className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.team?.color ?? '#9ca3af' }} />
+                  <span className="text-sm font-semibold text-white">{c.team?.name ?? '—'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-white tabular-nums w-10 text-right">{Math.round(c.p * 100)}%</span>
+                  <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{toAmerican(c.p)}</span>
+                </div>
+              </div>
+            ))}
+            <p className="text-[11px] text-white/40 mt-1">Split 2%</p>
+          </div>
+        )
+      })()}
+
       {loading ? (
         <p className="text-[#091540]/50 text-sm text-center py-8">Loading odds…</p>
       ) : rounds.every(r => r.matches.length === 0) ? (
@@ -80,7 +108,7 @@ export default function Odds() {
                 {round.matches.map(match => {
                   const status = calcMatchPlayStatus(match.hole_scores, round.holes)
                   const { rA, rB } = effectiveRatings(match.team1_player_names, match.team2_player_names)
-                  const probs = matchWinProbs(rA, rB, status.holesUp, status.holesRemaining)
+                  const probs = liveProbs(rA, rB, status.holesUp, status.holesRemaining, round.holes)
                   const live = match.status === 'in_progress'
                   const done = status.isComplete || match.status === 'complete'
 
