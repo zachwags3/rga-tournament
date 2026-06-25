@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, liveProbs, displayLine, toAmerican, cupProbs } from '@/lib/odds'
+import { effectiveRatings, liveProbs, displayLine, toAmerican, cupProbs, type CupProbs } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -12,6 +12,34 @@ type RoundWithMatches = Round & { matches: MatchWithScores[] }
 function names(arr: string[]): string {
   if (!arr || arr.length === 0) return 'TBD'
   return arr.join(' & ')
+}
+
+// Kalshi-style line chart of the two Cup lines over time (one point per scored hole).
+function CupChart({ g, n, grayColor, navyColor }: { g: number[]; n: number[]; grayColor: string; navyColor: string }) {
+  const W = 400, H = 170, P = 8
+  const all = [...g, ...n]
+  let lo = Math.max(0, Math.min(...all) - 4)
+  let hi = Math.min(100, Math.max(...all) + 4)
+  if (hi - lo < 20) { const mid = (hi + lo) / 2; lo = Math.max(0, mid - 10); hi = Math.min(100, mid + 10) }
+  const count = g.length
+  const x = (i: number) => (count <= 1 ? W - P : P + (i / (count - 1)) * (W - 2 * P))
+  const y = (v: number) => P + (1 - (v - lo) / (hi - lo)) * (H - 2 * P)
+  const path = (arr: number[]) =>
+    arr.length === 1
+      ? `M ${P} ${y(arr[0])} L ${W - P} ${y(arr[0])}`
+      : arr.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ')
+  const lastX = count <= 1 ? W - P : x(count - 1)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ display: 'block' }}>
+      {50 >= lo && 50 <= hi && (
+        <line x1={P} x2={W - P} y1={y(50)} y2={y(50)} stroke="#e5e7eb" strokeWidth={1} strokeDasharray="4 4" />
+      )}
+      <path d={path(n)} fill="none" stroke={navyColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <path d={path(g)} fill="none" stroke={grayColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={lastX} cy={y(n[n.length - 1])} r={3.5} fill={navyColor} />
+      <circle cx={lastX} cy={y(g[g.length - 1])} r={3.5} fill={grayColor} />
+    </svg>
+  )
 }
 
 export default function Odds() {
@@ -58,6 +86,60 @@ export default function Odds() {
 
   const colorFor = (id: string | null) => (id && teams.find(t => t.id === id)?.color) || '#9ca3af'
 
+  const gray = teams.find(t => t.name.toLowerCase().includes('gray')) ?? teams[0]
+  const navy = teams.find(t => t.name.toLowerCase().includes('navy')) ?? teams[1]
+
+  // Per-match Gray/Navy outcome probabilities, optionally as of a point in time.
+  const matchProbsAt = (cutoff: number | null) => {
+    const out: { pGray: number; pTie: number; pNavy: number }[] = []
+    for (const round of rounds) {
+      for (const m of round.matches) {
+        if (!m.team1_id || !m.team2_id) continue
+        if (!m.team1_player_names?.length || !m.team2_player_names?.length) continue
+        const holes = cutoff === null ? m.hole_scores : m.hole_scores.filter(h => Date.parse(h.created_at) <= cutoff)
+        const st = calcMatchPlayStatus(holes, round.holes)
+        const complete = st.isComplete || (cutoff === null && m.status === 'complete')
+        let p1: number, pt: number, p2: number
+        if (complete) {
+          const w = st.isComplete ? st.winner : m.result === 'team1_win' ? 'team1' : m.result === 'team2_win' ? 'team2' : 'halved'
+          p1 = w === 'team1' ? 1 : 0
+          p2 = w === 'team2' ? 1 : 0
+          pt = w === 'halved' ? 1 : 0
+        } else {
+          const { rA, rB } = effectiveRatings(m.team1_player_names, m.team2_player_names)
+          const lp = liveProbs(rA, rB, st.holesUp, st.holesRemaining, round.holes)
+          p1 = lp.pA; pt = lp.pTie; p2 = lp.pB
+        }
+        const t1Gray = m.team1_id === gray?.id
+        out.push(t1Gray ? { pGray: p1, pTie: pt, pNavy: p2 } : { pGray: p2, pTie: pt, pNavy: p1 })
+      }
+    }
+    return out
+  }
+
+  // Anchor the opening Cup line to Gray 51 / Navy 48 / 1% draw, then let it move.
+  const TARGET_GRAY = 51 / 99
+  const share = (c: CupProbs) => (c.pGray + c.pNavy > 0 ? c.pGray / (c.pGray + c.pNavy) : 0.5)
+  const bias = TARGET_GRAY - share(cupProbs(matchProbsAt(0)))
+  const cupPct = (c: CupProbs) => {
+    const sAdj = Math.min(0.999, Math.max(0.001, share(c) + bias))
+    const tie = Math.min(0.01, c.pTie)
+    const gp = Math.round(sAdj * (1 - tie) * 100)
+    const np = Math.round((1 - sAdj) * (1 - tie) * 100)
+    return { g: gp, n: np, draw: 100 - gp - np, pG: sAdj * (1 - tie), pN: (1 - sAdj) * (1 - tie) }
+  }
+
+  const hasMatches = matchProbsAt(null).length > 0
+  const cupNow = cupPct(cupProbs(matchProbsAt(null)))
+
+  // History: opening + one point per scored hole (replayed in timestamp order).
+  const times = Array.from(
+    new Set(rounds.flatMap(r => r.matches.flatMap(m => m.hole_scores.map(h => Date.parse(h.created_at)))))
+  ).sort((a, b) => a - b)
+  const seriesPts = [0, ...times].map(t => cupPct(cupProbs(matchProbsAt(t))))
+  const seriesG = seriesPts.map(p => p.g)
+  const seriesN = seriesPts.map(p => p.n)
+
   return (
     <>
       <h1 className="text-2xl font-bold text-[#091540] mb-1">Odds</h1>
@@ -65,67 +147,24 @@ export default function Odds() {
         Live win odds — model estimate, for entertainment only.
       </p>
 
-      {!loading && (() => {
-        const gray = teams.find(t => t.name.toLowerCase().includes('gray')) ?? teams[0]
-        const navy = teams.find(t => t.name.toLowerCase().includes('navy')) ?? teams[1]
-
-        // Live Cup line: aggregate every match's current outcome probability.
-        const mps: { pGray: number; pTie: number; pNavy: number }[] = []
-        for (const round of rounds) {
-          for (const m of round.matches) {
-            if (!m.team1_id || !m.team2_id) continue
-            if (!m.team1_player_names?.length || !m.team2_player_names?.length) continue
-            const st = calcMatchPlayStatus(m.hole_scores, round.holes)
-            const complete = st.isComplete || m.status === 'complete'
-            let p1: number, pt: number, p2: number
-            if (complete) {
-              const w = st.isComplete
-                ? st.winner
-                : m.result === 'team1_win' ? 'team1' : m.result === 'team2_win' ? 'team2' : 'halved'
-              p1 = w === 'team1' ? 1 : 0
-              p2 = w === 'team2' ? 1 : 0
-              pt = w === 'halved' ? 1 : 0
-            } else {
-              const { rA, rB } = effectiveRatings(m.team1_player_names, m.team2_player_names)
-              const lp = liveProbs(rA, rB, st.holesUp, st.holesRemaining, round.holes)
-              p1 = lp.pA; pt = lp.pTie; p2 = lp.pB
-            }
-            const t1Gray = m.team1_id === gray?.id
-            mps.push(t1Gray ? { pGray: p1, pTie: pt, pNavy: p2 } : { pGray: p2, pTie: pt, pNavy: p1 })
-          }
-        }
-
-        const cup = cupProbs(mps)
-        // Display: cap the split (max 2%, shrinks near a decided cup), sides sum to 100.
-        const s = cup.pGray + cup.pNavy > 0 ? cup.pGray / (cup.pGray + cup.pNavy) : 0.5
-        const tie = Math.min(0.02, cup.pTie)
-        const gP = Math.round(s * (1 - tie) * 100)
-        const nP = Math.round((1 - s) * (1 - tie) * 100)
-        const tP = 100 - gP - nP
-        const cupRows = [
-          { team: gray, p: s * (1 - tie), pctNum: gP },
-          { team: navy, p: (1 - s) * (1 - tie), pctNum: nP },
-        ]
-
-        return (
-          <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-3 mb-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Cup Winner</p>
-            {cupRows.map((c, i) => (
-              <div key={i} className="flex items-center justify-between py-1">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.team?.color ?? '#9ca3af' }} />
-                  <span className="text-sm font-semibold text-white">{c.team?.name ?? '—'}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-white tabular-nums w-10 text-right">{c.pctNum}%</span>
-                  <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{toAmerican(c.p)}</span>
-                </div>
+      {!loading && hasMatches && (
+        <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-3 mb-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Cup Winner</p>
+          {[{ team: gray, p: cupNow.pG, pct: cupNow.g }, { team: navy, p: cupNow.pN, pct: cupNow.n }].map((c, i) => (
+            <div key={i} className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.team?.color ?? '#9ca3af' }} />
+                <span className="text-sm font-semibold text-white">{c.team?.name ?? '—'}</span>
               </div>
-            ))}
-            {tP > 0 && <p className="text-[11px] text-white/40 mt-1">Split {tP}%</p>}
-          </div>
-        )
-      })()}
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-white tabular-nums w-10 text-right">{c.pct}%</span>
+                <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{toAmerican(c.p)}</span>
+              </div>
+            </div>
+          ))}
+          {cupNow.draw > 0 && <p className="text-[11px] text-white/40 mt-1">Draw {cupNow.draw}%</p>}
+        </div>
+      )}
 
       {loading ? (
         <p className="text-[#091540]/50 text-sm text-center py-8">Loading odds…</p>
@@ -149,7 +188,6 @@ export default function Odds() {
                   const tag = done ? 'FINAL' : live ? 'LIVE' : 'OPENING LINE'
                   const tagColor = done ? 'text-[#091540]/40' : live ? 'text-red-500' : 'text-[#091540]/40'
 
-                  // Three-way: two sides + a small split, all summing to 100%.
                   const line = displayLine(probs.pA, probs.pTie, probs.pB)
                   const rows = [
                     { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), p: line.pAd, pctNum: line.aPct, winner: status.winner === 'team1' },
@@ -203,6 +241,28 @@ export default function Odds() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && hasMatches && (
+        <div className="bg-white rounded-2xl shadow-sm px-4 py-4 mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50">Cup Winner — Live Movement</p>
+            <div className="flex items-center gap-3 text-xs font-semibold">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: gray?.color ?? '#9ca3af' }} />
+                <span className="text-[#091540]">{cupNow.g}%</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: navy?.color ?? '#1e3a8a' }} />
+                <span className="text-[#091540]">{cupNow.n}%</span>
+              </span>
+            </div>
+          </div>
+          <CupChart g={seriesG} n={seriesN} grayColor={gray?.color ?? '#9ca3af'} navyColor={navy?.color ?? '#1e3a8a'} />
+          {seriesG.length <= 1 && (
+            <p className="text-[11px] text-[#091540]/40 mt-2 text-center">The line moves as holes are scored.</p>
+          )}
         </div>
       )}
     </>
