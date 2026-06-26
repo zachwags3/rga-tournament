@@ -38,7 +38,7 @@ const PROPS: Prop[] = [
     ],
   },
   {
-    title: 'To Drive the Green',
+    title: 'To Drive the Green (Comm Hole 1, 6, 10, 14)',
     yesNo: [
       { label: 'Pat', yes: '-150', no: '+120' },
       { label: 'Sean, Nate, Jack, Mitch', yes: '-120', no: 'EV' },
