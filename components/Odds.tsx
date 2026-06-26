@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, liveProbs, displayLine, toAmerican, moneyline, cupProbs, type CupProbs } from '@/lib/odds'
+import { effectiveRatings, liveProbs, displayLine, moneyline, cupProbs, type CupProbs } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -140,7 +140,10 @@ export default function Odds() {
     const tie = Math.min(0.01, c.pTie)
     const gp = Math.round(sAdj * (1 - tie) * 100)
     const np = Math.round((1 - sAdj) * (1 - tie) * 100)
-    return { g: gp, n: np, draw: 100 - gp - np, pG: sAdj * (1 - tie), pN: (1 - sAdj) * (1 - tie) }
+    // s = Gray's draw-no-bet win share; feed it through moneyline() so the Cup
+    // line carries the same house vig as the per-match lines (favorite's minus is
+    // stronger than the underdog's plus). A tie retains the cup -> treated as a push.
+    return { g: gp, n: np, draw: 100 - gp - np, pG: sAdj * (1 - tie), pN: (1 - sAdj) * (1 - tie), s: sAdj }
   }
 
   const hasMatches = matchProbsAt(null).length > 0
@@ -164,13 +167,13 @@ export default function Odds() {
       {!loading && hasMatches && (
         <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-3 mb-6">
           <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Cup Winner</p>
-          {[{ team: gray, p: cupNow.pG, pct: cupNow.g }, { team: navy, p: cupNow.pN, pct: cupNow.n }].map((c, i) => (
+          {[{ team: gray, line: moneyline(cupNow.s), pct: cupNow.g }, { team: navy, line: moneyline(1 - cupNow.s), pct: cupNow.n }].map((c, i) => (
             <div key={i} className="flex items-center justify-between py-1">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.team?.color ?? '#9ca3af' }} />
                 <span className="text-sm font-semibold text-white">{c.team?.name ?? '—'}</span>
               </div>
-              <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{toAmerican(c.p)}</span>
+              <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{c.line}</span>
             </div>
           ))}
         </div>
@@ -256,11 +259,11 @@ export default function Odds() {
             <div className="flex items-center gap-3 text-xs font-semibold">
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: gray?.color ?? '#9ca3af' }} />
-                <span className="text-[#091540] tabular-nums">{toAmerican(cupNow.pG)}</span>
+                <span className="text-[#091540] tabular-nums">{moneyline(cupNow.s)}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: navy?.color ?? '#1e3a8a' }} />
-                <span className="text-[#091540] tabular-nums">{toAmerican(cupNow.pN)}</span>
+                <span className="text-[#091540] tabular-nums">{moneyline(1 - cupNow.s)}</span>
               </span>
             </div>
           </div>
