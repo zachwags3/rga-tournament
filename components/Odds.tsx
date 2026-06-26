@@ -119,6 +119,15 @@ export default function Odds() {
         out.push(t1Gray ? { pGray: p1, pTie: pt, pNavy: p2 } : { pGray: p2, pTie: pt, pNavy: p1 })
       }
     }
+    // Every match is worth exactly 1 RGA point, and the full tournament is a fixed
+    // pool of points (sum of each round's points_available — 12 here). Points that
+    // aren't drafted/scheduled yet are still up for grabs, so model them as neutral
+    // coin-flips. Without this the Cup line treats only the *played* matches as the
+    // entire tournament — e.g. 2-0 looks like a clinched cup instead of a small lead.
+    const totalPoints = rounds.reduce((sum, r) => sum + (r.points_available ?? 0), 0)
+    for (let i = out.length; i < totalPoints; i++) {
+      out.push({ pGray: 0.5, pTie: 0, pNavy: 0.5 })
+    }
     return out
   }
 
