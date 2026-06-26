@@ -40,10 +40,10 @@ const PROPS: Prop[] = [
   {
     title: 'To Drive the Green',
     yesNo: [
-      { label: 'Pat', yes: '-150', no: '+150' },
-      { label: 'Sean, Nate, Jack, Mitch', yes: '-120', no: '+120' },
-      { label: 'Danny, Zach, Charlie, Sam', yes: '+120', no: '-120' },
-      { label: 'Michael, Joe, Henry', yes: '+150', no: '-150' },
+      { label: 'Pat', yes: '-150', no: '+120' },
+      { label: 'Sean, Nate, Jack, Mitch', yes: '-120', no: 'EV' },
+      { label: 'Danny, Zach, Charlie, Sam', yes: '+120', no: '-150' },
+      { label: 'Michael, Joe, Henry', yes: '+150', no: '-180' },
     ],
   },
   {
