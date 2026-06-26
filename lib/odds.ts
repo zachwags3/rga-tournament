@@ -14,8 +14,9 @@ const logistic = (x: number) => 1 / (1 + Math.exp(-x))
 
 // Manual per-matchup overrides for lines Zach wants pinned regardless of the model.
 // `even` forces a 50/50 opening; the model still moves it live from there.
-// `pin` fixes side A's win share directly (no model, no movement) — with the vig
-// at 0 this yields exact mirrored lines, e.g. shareA 0.5833 -> A -140 / B +140.
+// `pin` sets side A's *opening* win share; the line still moves live from there
+// (symmetric, hole-driven). With the vig at 0 this opens as an exact mirror,
+// e.g. shareA 0.5833 -> A -140 / B +140, then shifts as holes are won.
 type Override =
   | { a: string[]; b: string[]; mode: 'even' }
   | { a: string[]; b: string[]; mode: 'ratings'; rA: number; rB: number }

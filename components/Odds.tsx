@@ -271,15 +271,26 @@ export default function Odds() {
                   const tag = done ? 'FINAL' : live ? 'LIVE' : 'OPENING LINE'
                   const tagColor = done ? 'text-[#091540]/40' : live ? 'text-red-500' : 'text-[#091540]/40'
 
-                  const line = displayLine(probs.pA, probs.pTie, probs.pB, status.holesRemaining)
-                  const denom = line.pAd + line.pBd
-                  const modelSA = denom > 0 ? line.pAd / denom : 0.5
-                  // Pinned matchups show a fixed mirrored line; others use the model.
+                  // Side A win share. Pinned matchups open at the pin line and then
+                  // move symmetrically with the holes (equal-rated movement shifted so
+                  // the 0-0 opening equals the pin); others use the rating model.
+                  const shareFrom = (p: typeof probs) => {
+                    const l = displayLine(p.pA, p.pTie, p.pB, status.holesRemaining)
+                    const d = l.pAd + l.pBd
+                    return d > 0 ? l.pAd / d : 0.5
+                  }
                   const pin = pinnedShare(match.team1_player_names, match.team2_player_names)
-                  const sA = pin != null ? pin : modelSA
+                  let sA: number
+                  if (pin != null) {
+                    const mid = (rA + rB) / 2
+                    const eq = liveProbs(mid, mid, status.holesUp, status.holesRemaining, round.holes)
+                    sA = Math.min(0.97, Math.max(0.03, shareFrom(eq) + (pin - 0.5)))
+                  } else {
+                    sA = shareFrom(probs)
+                  }
                   const rows = [
-                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), share: sA, pctNum: line.aPct, winner: status.winner === 'team1' },
-                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), share: 1 - sA, pctNum: line.bPct, winner: status.winner === 'team2' },
+                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), share: sA, winner: status.winner === 'team1' },
+                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), share: 1 - sA, winner: status.winner === 'team2' },
                   ]
 
                   return (
