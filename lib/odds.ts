@@ -111,6 +111,10 @@ export function liveProbs(
   let pA = b(live.pA, open.pA)
   let pTie = b(live.pTie, open.pTie)
   let pB = b(live.pB, open.pB)
+  // A side that mathematically can't win the match must read 0 (don't let the
+  // blend toward the opening line invent a win chance for an eliminated side).
+  if (live.pA === 0) pA = 0
+  if (live.pB === 0) pB = 0
   const s = pA + pTie + pB || 1
   return { pA: pA / s, pTie: pTie / s, pB: pB / s }
 }
@@ -118,13 +122,21 @@ export function liveProbs(
 // Three-way display line: keep the model's relative favoritism but show the tie
 // ("split") as a small 4–6% band (closer matchup -> nearer 6%, lopsided -> nearer
 // 4%), and let it shrink below that as a match nears clinching. All sum to 100%.
-export function displayLine(pA: number, pTie: number, pB: number): {
-  aPct: number; bPct: number; tiePct: number; pAd: number; pBd: number
-} {
+export function displayLine(
+  pA: number,
+  pTie: number,
+  pB: number,
+  remaining?: number
+): { aPct: number; bPct: number; tiePct: number; pAd: number; pBd: number } {
   const s = pA + pB > 0 ? pA / (pA + pB) : 0.5
   const edge = Math.min(1, Math.abs(s - 0.5) * 2)
-  const band = 0.06 - 0.02 * edge // 6% even -> 4% lopsided
-  const tie = Math.min(band, pTie) // don't show a tie bigger than reality near clinch
+  const band = 0.06 - 0.02 * edge // small 4-6% cap for opening/early
+  const capped = Math.min(band, pTie)
+  // Early in a match the tie is held to the small band; as the match nears its end
+  // the true (often large) match-tie probability is revealed — e.g. 1 up with 1 to
+  // play is roughly a coin flip between "leader wins" and "match halved".
+  const w = remaining == null ? 0 : Math.max(0, Math.min(1, 1 - (remaining - 1) / 4))
+  const tie = capped + (pTie - capped) * w
   const pAd = s * (1 - tie)
   const pBd = (1 - s) * (1 - tie)
   const aPct = Math.round(pAd * 100)

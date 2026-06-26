@@ -14,30 +14,35 @@ function names(arr: string[]): string {
   return arr.join(' & ')
 }
 
-// Kalshi-style line chart of the two Cup lines over time (one point per scored hole).
-function CupChart({ g, n, grayColor, navyColor }: { g: number[]; n: number[]; grayColor: string; navyColor: string }) {
-  const W = 400, H = 170, P = 8
-  const all = [...g, ...n]
-  let lo = Math.max(0, Math.min(...all) - 4)
-  let hi = Math.min(100, Math.max(...all) + 4)
-  if (hi - lo < 20) { const mid = (hi + lo) / 2; lo = Math.max(0, mid - 10); hi = Math.min(100, mid + 10) }
-  const count = g.length
-  const x = (i: number) => (count <= 1 ? W - P : P + (i / (count - 1)) * (W - 2 * P))
-  const y = (v: number) => P + (1 - (v - lo) / (hi - lo)) * (H - 2 * P)
-  const path = (arr: number[]) =>
-    arr.length === 1
-      ? `M ${P} ${y(arr[0])} L ${W - P} ${y(arr[0])}`
-      : arr.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ')
-  const lastX = count <= 1 ? W - P : x(count - 1)
+// ESPN-style single win-probability line: 50% centered on the x-axis. Above the
+// midline = Gray favored (gray line + gray shading); below = Navy favored (navy).
+// `v` is Gray's share of the win (0–100, 50 = even), one point per scored hole.
+function CupChart({ v, grayColor, navyColor }: { v: number[]; grayColor: string; navyColor: string }) {
+  const W = 400, H = 180, P = 8
+  const dev = Math.max(0, ...v.map(x => Math.abs(x - 50)))
+  const D = Math.min(50, Math.max(dev + 6, 12)) // symmetric half-span around 50
+  const lo = 50 - D, hi = 50 + D
+  const count = v.length
+  const xAt = (i: number) => (count <= 1 ? W - P : P + (i / (count - 1)) * (W - 2 * P))
+  const y = (val: number) => P + (1 - (val - lo) / (hi - lo)) * (H - 2 * P)
+  const midY = y(50)
+  const pts = count === 1 ? [{ x: P, v: v[0] }, { x: W - P, v: v[0] }] : v.map((val, i) => ({ x: xAt(i), v: val }))
+  const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ')
+  const first = pts[0].x, last = pts[pts.length - 1].x
+  const areaPath = `${linePath} L ${last.toFixed(1)} ${midY.toFixed(1)} L ${first.toFixed(1)} ${midY.toFixed(1)} Z`
+  const curV = v[v.length - 1]
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ display: 'block' }}>
-      {50 >= lo && 50 <= hi && (
-        <line x1={P} x2={W - P} y1={y(50)} y2={y(50)} stroke="#e5e7eb" strokeWidth={1} strokeDasharray="4 4" />
-      )}
-      <path d={path(n)} fill="none" stroke={navyColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <path d={path(g)} fill="none" stroke={grayColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <circle cx={lastX} cy={y(n[n.length - 1])} r={3.5} fill={navyColor} />
-      <circle cx={lastX} cy={y(g[g.length - 1])} r={3.5} fill={grayColor} />
+      <defs>
+        <clipPath id="cupAbove"><rect x="0" y="0" width={W} height={midY} /></clipPath>
+        <clipPath id="cupBelow"><rect x="0" y={midY} width={W} height={H - midY} /></clipPath>
+      </defs>
+      <path d={areaPath} fill={grayColor} fillOpacity={0.22} clipPath="url(#cupAbove)" />
+      <path d={areaPath} fill={navyColor} fillOpacity={0.22} clipPath="url(#cupBelow)" />
+      <line x1={P} x2={W - P} y1={midY} y2={midY} stroke="#cbd5e1" strokeWidth={1} />
+      <path d={linePath} fill="none" stroke={grayColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" clipPath="url(#cupAbove)" />
+      <path d={linePath} fill="none" stroke={navyColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" clipPath="url(#cupBelow)" />
+      <circle cx={last} cy={y(curV)} r={3.5} fill={curV >= 50 ? grayColor : navyColor} />
     </svg>
   )
 }
@@ -137,8 +142,8 @@ export default function Odds() {
     new Set(rounds.flatMap(r => r.matches.flatMap(m => m.hole_scores.map(h => Date.parse(h.created_at)))))
   ).sort((a, b) => a - b)
   const seriesPts = [0, ...times].map(t => cupPct(cupProbs(matchProbsAt(t))))
-  const seriesG = seriesPts.map(p => p.g)
-  const seriesN = seriesPts.map(p => p.n)
+  // Single line = Gray's share of the win (0–100, 50 = even).
+  const seriesV = seriesPts.map(p => (p.g + p.n > 0 ? (p.g / (p.g + p.n)) * 100 : 50))
 
   return (
     <>
@@ -188,7 +193,7 @@ export default function Odds() {
                   const tag = done ? 'FINAL' : live ? 'LIVE' : 'OPENING LINE'
                   const tagColor = done ? 'text-[#091540]/40' : live ? 'text-red-500' : 'text-[#091540]/40'
 
-                  const line = displayLine(probs.pA, probs.pTie, probs.pB)
+                  const line = displayLine(probs.pA, probs.pTie, probs.pB, status.holesRemaining)
                   const rows = [
                     { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), p: line.pAd, pctNum: line.aPct, winner: status.winner === 'team1' },
                     { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), p: line.pBd, pctNum: line.bPct, winner: status.winner === 'team2' },
@@ -259,8 +264,8 @@ export default function Odds() {
               </span>
             </div>
           </div>
-          <CupChart g={seriesG} n={seriesN} grayColor={gray?.color ?? '#9ca3af'} navyColor={navy?.color ?? '#1e3a8a'} />
-          {seriesG.length <= 1 && (
+          <CupChart v={seriesV} grayColor={gray?.color ?? '#9ca3af'} navyColor={navy?.color ?? '#1e3a8a'} />
+          {seriesV.length <= 1 && (
             <p className="text-[11px] text-[#091540]/40 mt-2 text-center">The line moves as holes are scored.</p>
           )}
         </div>
