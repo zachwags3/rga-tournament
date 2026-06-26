@@ -173,7 +173,15 @@ export function cupProbs(
   return { pGray, pTie, pNavy }
 }
 
-// Fair American moneyline from a win probability (no vig).
+// Sportsbook moneyline with house juice baked in: a fair 50/50 prices at -110/-110
+// (the standard ~4.8% overround). `share` is a side's head-to-head win share (0-1);
+// ties are treated as a push (draw-no-bet), matching the "-110 each" convention.
+const VIG = 0.0476
+export function moneyline(share: number): string {
+  return toAmerican(Math.min(0.96, share * (1 + VIG)))
+}
+
+// Fair American moneyline from a win probability (no vig). Used for the Cup line.
 export function toAmerican(p: number): string {
   if (p >= 0.999) return '-100000'
   if (p <= 0.001) return '+100000'

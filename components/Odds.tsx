@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, liveProbs, displayLine, toAmerican, cupProbs, type CupProbs } from '@/lib/odds'
+import { effectiveRatings, liveProbs, displayLine, toAmerican, moneyline, cupProbs, type CupProbs } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -194,9 +194,11 @@ export default function Odds() {
                   const tagColor = done ? 'text-[#091540]/40' : live ? 'text-red-500' : 'text-[#091540]/40'
 
                   const line = displayLine(probs.pA, probs.pTie, probs.pB, status.holesRemaining)
+                  const denom = line.pAd + line.pBd
+                  const sA = denom > 0 ? line.pAd / denom : 0.5
                   const rows = [
-                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), p: line.pAd, pctNum: line.aPct, winner: status.winner === 'team1' },
-                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), p: line.pBd, pctNum: line.bPct, winner: status.winner === 'team2' },
+                    { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), share: sA, pctNum: line.aPct, winner: status.winner === 'team1' },
+                    { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), share: 1 - sA, pctNum: line.bPct, winner: status.winner === 'team2' },
                   ]
 
                   return (
@@ -230,7 +232,7 @@ export default function Odds() {
                             ) : (
                               <>
                                 <span className="text-sm font-bold text-[#091540] tabular-nums w-10 text-right">{row.pctNum}%</span>
-                                <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums w-14 text-right">{toAmerican(row.p)}</span>
+                                <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums w-14 text-right">{moneyline(row.share)}</span>
                               </>
                             )}
                           </div>
