@@ -14,9 +14,13 @@ const logistic = (x: number) => 1 / (1 + Math.exp(-x))
 
 // Manual per-matchup overrides for lines Zach wants pinned regardless of the model.
 // `even` forces a 50/50 opening; the model still moves it live from there.
-type Override = { a: string[]; b: string[]; mode: 'even' }
+type Override =
+  | { a: string[]; b: string[]; mode: 'even' }
+  | { a: string[]; b: string[]; mode: 'ratings'; rA: number; rB: number }
 const OVERRIDES: Override[] = [
   { a: ['zach', 'danny'], b: ['jack', 'sam'], mode: 'even' },
+  // Dial Sean & Charlie down to ~-140 (gap ~5 around their natural average).
+  { a: ['sean', 'charlie'], b: ['mitch', 'joe'], mode: 'ratings', rA: 58.1, rB: 53.1 },
 ]
 
 const namesKey = (arr: string[]) => arr.map(s => s.trim().toLowerCase()).sort().join('|')
@@ -30,10 +34,15 @@ export function effectiveRatings(team1: string[], team2: string[]): { rA: number
   for (const o of OVERRIDES) {
     const oa = namesKey(o.a)
     const ob = namesKey(o.b)
-    if ((k1 === oa && k2 === ob) || (k1 === ob && k2 === oa)) {
+    const team1IsA = k1 === oa && k2 === ob
+    const team1IsB = k1 === ob && k2 === oa
+    if (team1IsA || team1IsB) {
       if (o.mode === 'even') {
         const mid = (r1 + r2) / 2
         return { rA: mid, rB: mid }
+      }
+      if (o.mode === 'ratings') {
+        return team1IsA ? { rA: o.rA, rB: o.rB } : { rA: o.rB, rB: o.rA }
       }
     }
   }

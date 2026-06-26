@@ -161,13 +161,9 @@ export default function Odds() {
                 <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.team?.color ?? '#9ca3af' }} />
                 <span className="text-sm font-semibold text-white">{c.team?.name ?? '—'}</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-white tabular-nums w-10 text-right">{c.pct}%</span>
-                <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{toAmerican(c.p)}</span>
-              </div>
+              <span className="text-sm font-semibold text-[#e8c96a] tabular-nums w-14 text-right">{toAmerican(c.p)}</span>
             </div>
           ))}
-          {cupNow.draw > 0 && <p className="text-[11px] text-white/40 mt-1">Draw {cupNow.draw}%</p>}
         </div>
       )}
 
@@ -230,18 +226,11 @@ export default function Odds() {
                                 {row.winner ? 'Won' : status.winner === 'halved' ? 'Tie' : '—'}
                               </span>
                             ) : (
-                              <>
-                                <span className="text-sm font-bold text-[#091540] tabular-nums w-10 text-right">{row.pctNum}%</span>
-                                <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums w-14 text-right">{moneyline(row.share)}</span>
-                              </>
+                              <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums w-14 text-right">{moneyline(row.share)}</span>
                             )}
                           </div>
                         </div>
                       ))}
-
-                      {!done && line.tiePct > 0 && (
-                        <p className="text-[11px] text-[#091540]/40 mt-1">Split {line.tiePct}%</p>
-                      )}
                     </div>
                   )
                 })}
@@ -258,11 +247,11 @@ export default function Odds() {
             <div className="flex items-center gap-3 text-xs font-semibold">
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: gray?.color ?? '#9ca3af' }} />
-                <span className="text-[#091540]">{cupNow.g}%</span>
+                <span className="text-[#091540] tabular-nums">{toAmerican(cupNow.pG)}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: navy?.color ?? '#1e3a8a' }} />
-                <span className="text-[#091540]">{cupNow.n}%</span>
+                <span className="text-[#091540] tabular-nums">{toAmerican(cupNow.pN)}</span>
               </span>
             </div>
           </div>
