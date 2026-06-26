@@ -236,7 +236,7 @@ export default function Odds() {
 
       {!loading && hasMatches && (
         <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-3 mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Cup Winner</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#e8c96a] mb-2">Cup Winner</p>
           {[{ team: gray, line: moneyline(cupNow.s), pct: cupNow.g }, { team: navy, line: moneyline(1 - cupNow.s), pct: cupNow.n }].map((c, i) => (
             <div key={i} className="flex items-center justify-between py-1">
               <div className="flex items-center gap-2">
