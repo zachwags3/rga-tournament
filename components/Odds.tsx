@@ -159,10 +159,7 @@ export default function Odds() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-[#091540] mb-1">Odds</h1>
-      <p className="text-[#091540]/50 text-xs mb-6">
-        Live win odds — model estimate, for entertainment only.
-      </p>
+      <h1 className="text-2xl font-bold text-[#091540] mb-6">Odds</h1>
 
       {!loading && hasMatches && (
         <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-3 mb-6">
