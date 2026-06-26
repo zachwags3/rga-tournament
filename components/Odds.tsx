@@ -26,7 +26,7 @@ const PROPS: Prop[] = [
   {
     title: 'Lowest Scramble Score (O/U 69.5)',
     outcomes: [
-      { label: 'Under 69.5', odds: '-110' },
+      { label: 'Under 69.5', odds: '-120' },
       { label: 'Over 69.5', odds: 'EV' },
     ],
   },
