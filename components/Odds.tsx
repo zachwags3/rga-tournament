@@ -204,8 +204,8 @@ export default function Odds() {
     return out
   }
 
-  // Anchor the opening Cup line to Gray 51 / Navy 48 / 1% draw, then let it move.
-  const TARGET_GRAY = 51 / 99
+  // Anchor the opening Cup line to a pick'em (Gray -110 / Navy -110), then let it move.
+  const TARGET_GRAY = 0.5
   const share = (c: CupProbs) => (c.pGray + c.pNavy > 0 ? c.pGray / (c.pGray + c.pNavy) : 0.5)
   const bias = TARGET_GRAY - share(cupProbs(matchProbsAt(0)))
   const cupPct = (c: CupProbs) => {
