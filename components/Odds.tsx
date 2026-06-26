@@ -325,15 +325,15 @@ export default function Odds() {
       {!loading && hasMatches && (
         <div className="bg-white rounded-2xl shadow-sm px-4 py-4 mt-6">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50">Cup Winner — Live Movement</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#e8c96a]">Cup Winner — Live Movement</p>
             <div className="flex items-center gap-3 text-xs font-semibold">
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: gray?.color ?? '#9ca3af' }} />
-                <span className="text-[#091540] tabular-nums">{moneyline(cupNow.s)}</span>
+                <span className="text-[#e8c96a] tabular-nums">{moneyline(cupNow.s)}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: navy?.color ?? '#1e3a8a' }} />
-                <span className="text-[#091540] tabular-nums">{moneyline(1 - cupNow.s)}</span>
+                <span className="text-[#e8c96a] tabular-nums">{moneyline(1 - cupNow.s)}</span>
               </span>
             </div>
           </div>
