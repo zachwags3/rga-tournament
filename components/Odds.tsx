@@ -57,9 +57,9 @@ const PROPS: Prop[] = [
   {
     title: 'Saturday Low Foursome',
     outcomes: [
-      { label: 'Zach & Danny, Jack & Sam', odds: '+140' },
-      { label: 'Sean & Charlie, Mitch & Joe', odds: '+190' },
-      { label: 'Pat & Henry, Nathan & Mike', odds: '+240' },
+      { label: 'Zach & Danny / Jack & Sam', odds: '+140' },
+      { label: 'Sean & Charlie / Mitch & Joe', odds: '+190' },
+      { label: 'Pat & Henry / Nathan & Mike', odds: '+240' },
     ],
   },
   {
