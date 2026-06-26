@@ -55,6 +55,14 @@ const PROPS: Prop[] = [
     ],
   },
   {
+    title: 'Saturday Low Grouping',
+    outcomes: [
+      { label: 'Zach & Danny, Jack & Sam', odds: '+140' },
+      { label: 'Sean & Charlie, Mitch & Joe', odds: '+190' },
+      { label: 'Pat & Henry, Nathan & Mike', odds: '+240' },
+    ],
+  },
+  {
     title: 'RGA MVP',
     outcomes: [
       { label: 'Pat / Jack', odds: '+150' },
