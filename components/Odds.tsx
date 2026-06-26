@@ -9,6 +9,15 @@ import type { Round, Match, HoleScore, Team } from '@/types/database'
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
 type RoundWithMatches = Round & { matches: MatchWithScores[] }
 
+// Static prop bets — no live movement, just a fixed board. Each prop has a title
+// and a list of outcomes with American odds (string, e.g. "-130", "+220", "EV").
+// Fill these in as Zach provides them.
+type Prop = { title: string; outcomes: { label: string; odds: string }[] }
+const PROPS: Prop[] = [
+  // Example shape (remove once real props are added):
+  // { title: 'Longest Drive', outcomes: [{ label: 'Pat', odds: '-120' }, { label: 'Jack', odds: '+150' }] },
+]
+
 function names(arr: string[]): string {
   if (!arr || arr.length === 0) return 'TBD'
   return arr.join(' & ')
@@ -51,6 +60,7 @@ export default function Odds() {
   const [teams, setTeams] = useState<Team[]>([])
   const [rounds, setRounds] = useState<RoundWithMatches[]>([])
   const [loading, setLoading] = useState(true)
+  const [propsOpen, setPropsOpen] = useState(false)
 
   async function fetchAll() {
     const timeout = new Promise<null>(res => setTimeout(() => res(null), 5000))
@@ -267,6 +277,39 @@ export default function Odds() {
           <CupChart v={seriesV} grayColor={gray?.color ?? '#9ca3af'} navyColor={navy?.color ?? '#1e3a8a'} />
           {seriesV.length <= 1 && (
             <p className="text-[11px] text-[#091540]/40 mt-2 text-center">The line moves as holes are scored.</p>
+          )}
+        </div>
+      )}
+
+      {!loading && PROPS.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm mt-6 overflow-hidden">
+          <button
+            onClick={() => setPropsOpen(o => !o)}
+            className="w-full flex items-center justify-between px-4 py-4"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50">Props</p>
+            <span
+              className={`text-[#091540]/40 text-sm transition-transform ${propsOpen ? 'rotate-180' : ''}`}
+            >
+              ▾
+            </span>
+          </button>
+          {propsOpen && (
+            <div className="px-4 pb-4 flex flex-col gap-5">
+              {PROPS.map((prop, i) => (
+                <div key={i}>
+                  <p className="text-sm font-semibold text-[#091540] mb-2">{prop.title}</p>
+                  <div className="flex flex-col gap-1">
+                    {prop.outcomes.map((o, j) => (
+                      <div key={j} className="flex items-center justify-between py-1 border-b border-[#091540]/5 last:border-0">
+                        <span className="text-sm text-[#091540]">{o.label}</span>
+                        <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums">{o.odds}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
