@@ -195,8 +195,9 @@ export function toAmerican(p: number): string {
   if (p >= 0.999) return '-100000'
   if (p <= 0.001) return '+100000'
   const round10 = (x: number) => Math.round(x / 10) * 10
-  if (p >= 0.5) return `-${round10((100 * p) / (1 - p))}`
-  return `+${round10((100 * (1 - p)) / p)}`
+  const mag = p >= 0.5 ? round10((100 * p) / (1 - p)) : round10((100 * (1 - p)) / p)
+  if (mag === 100) return 'EV' // even money (-100/+100) reads as "EV"
+  return p >= 0.5 ? `-${mag}` : `+${mag}`
 }
 
 export const pct = (p: number) => `${Math.round(p * 100)}%`
