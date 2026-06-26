@@ -55,7 +55,7 @@ const PROPS: Prop[] = [
     ],
   },
   {
-    title: 'Saturday Low Grouping',
+    title: 'Saturday Low Foursome',
     outcomes: [
       { label: 'Zach & Danny, Jack & Sam', odds: '+140' },
       { label: 'Sean & Charlie, Mitch & Joe', odds: '+190' },
