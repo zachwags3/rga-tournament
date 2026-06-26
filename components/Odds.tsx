@@ -63,6 +63,15 @@ const PROPS: Prop[] = [
     ],
   },
   {
+    title: 'The Sunday Six',
+    outcomes: [
+      { label: 'Gray — Over 3.5', odds: '+150' },
+      { label: 'Gray — Under 3.5', odds: '-180' },
+      { label: 'Navy — Over 3.5', odds: '+180' },
+      { label: 'Navy — Under 3.5', odds: '-210' },
+    ],
+  },
+  {
     title: 'RGA MVP',
     outcomes: [
       { label: 'Pat / Jack', odds: '+150' },
