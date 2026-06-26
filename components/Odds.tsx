@@ -323,9 +323,6 @@ export default function Odds() {
             </div>
           </div>
           <CupChart v={seriesV} grayColor={gray?.color ?? '#9ca3af'} navyColor={navy?.color ?? '#1e3a8a'} />
-          {seriesV.length <= 1 && (
-            <p className="text-[11px] text-[#091540]/40 mt-2 text-center">The line moves as holes are scored.</p>
-          )}
         </div>
       )}
 
@@ -337,7 +334,7 @@ export default function Odds() {
           >
             <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50">Props</p>
             <span
-              className={`text-[#091540]/40 text-sm transition-transform ${propsOpen ? 'rotate-180' : ''}`}
+              className={`text-[#091540]/60 text-2xl leading-none transition-transform ${propsOpen ? 'rotate-180' : ''}`}
             >
               ▾
             </span>
