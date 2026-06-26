@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, liveProbs, displayLine, moneyline, cupProbs, type CupProbs } from '@/lib/odds'
+import { effectiveRatings, liveProbs, displayLine, moneyline, pinnedShare, cupProbs, type CupProbs } from '@/lib/odds'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
@@ -19,39 +19,39 @@ const PROPS: Prop[] = [
   {
     title: 'Longest Drive',
     outcomes: [
-      { label: 'Sean / Jack / Pat', odds: '-160' },
+      { label: 'Sean / Jack / Pat', odds: '-140' },
       { label: 'The Field', odds: '+140' },
     ],
   },
   {
     title: 'Lowest Scramble Score (O/U 69.5)',
     outcomes: [
-      { label: 'Under 69.5', odds: '-120' },
-      { label: 'Over 69.5', odds: 'EV' },
+      { label: 'Under 69.5', odds: '-110' },
+      { label: 'Over 69.5', odds: '+110' },
     ],
   },
   {
     title: 'Lowest Singles Score',
     outcomes: [
       { label: 'Pat / Jack', odds: '-200' },
-      { label: 'The Field', odds: '+180' },
+      { label: 'The Field', odds: '+200' },
     ],
   },
   {
     title: 'To Drive the Green (Comm Hole 1, 6, 10, 14)',
     yesNo: [
-      { label: 'Pat', yes: '-150', no: '+120' },
-      { label: 'Sean, Nate, Jack, Mitch', yes: '-120', no: 'EV' },
-      { label: 'Danny, Zach, Charlie, Sam', yes: '+120', no: '-150' },
-      { label: 'Michael, Joe, Henry', yes: '+150', no: '-180' },
+      { label: 'Pat', yes: '-150', no: '+150' },
+      { label: 'Sean, Nate, Jack, Mitch', yes: '-120', no: '+120' },
+      { label: 'Danny, Zach, Charlie, Sam', yes: '+120', no: '-120' },
+      { label: 'Michael, Joe, Henry', yes: '+150', no: '-150' },
     ],
   },
   {
     title: 'Hole 1 Special',
-    outcomes: [
-      { label: 'At least 1 eagle', odds: '+250' },
-      { label: 'At least 1 birdie', odds: '-190' },
-      { label: 'No bogeys', odds: '+130' },
+    yesNo: [
+      { label: 'At least 1 eagle', yes: '+250', no: '-250' },
+      { label: 'At least 1 birdie', yes: '-190', no: '+190' },
+      { label: 'No bogeys', yes: '+130', no: '-130' },
     ],
   },
   {
@@ -66,7 +66,7 @@ const PROPS: Prop[] = [
     title: 'Earliest Closeout (O/U 14.5 holes)',
     outcomes: [
       { label: 'Under 14.5', odds: '-140' },
-      { label: 'Over 14.5', odds: '+120' },
+      { label: 'Over 14.5', odds: '+140' },
     ],
   },
   {
@@ -273,7 +273,10 @@ export default function Odds() {
 
                   const line = displayLine(probs.pA, probs.pTie, probs.pB, status.holesRemaining)
                   const denom = line.pAd + line.pBd
-                  const sA = denom > 0 ? line.pAd / denom : 0.5
+                  const modelSA = denom > 0 ? line.pAd / denom : 0.5
+                  // Pinned matchups show a fixed mirrored line; others use the model.
+                  const pin = pinnedShare(match.team1_player_names, match.team2_player_names)
+                  const sA = pin != null ? pin : modelSA
                   const rows = [
                     { side: 'A' as const, name: names(match.team1_player_names), color: colorFor(match.team1_id), share: sA, pctNum: line.aPct, winner: status.winner === 'team1' },
                     { side: 'B' as const, name: names(match.team2_player_names), color: colorFor(match.team2_id), share: 1 - sA, pctNum: line.bPct, winner: status.winner === 'team2' },

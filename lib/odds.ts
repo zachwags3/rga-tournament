@@ -14,14 +14,32 @@ const logistic = (x: number) => 1 / (1 + Math.exp(-x))
 
 // Manual per-matchup overrides for lines Zach wants pinned regardless of the model.
 // `even` forces a 50/50 opening; the model still moves it live from there.
+// `pin` fixes side A's win share directly (no model, no movement) — with the vig
+// at 0 this yields exact mirrored lines, e.g. shareA 0.5833 -> A -140 / B +140.
 type Override =
   | { a: string[]; b: string[]; mode: 'even' }
   | { a: string[]; b: string[]; mode: 'ratings'; rA: number; rB: number }
+  | { a: string[]; b: string[]; mode: 'pin'; shareA: number }
 const OVERRIDES: Override[] = [
-  { a: ['zach', 'danny'], b: ['jack', 'sam'], mode: 'even' },
-  // Dial Sean & Charlie down to ~-140 (gap ~5 around their natural average).
-  { a: ['sean', 'charlie'], b: ['mitch', 'joe'], mode: 'ratings', rA: 58.1, rB: 53.1 },
+  { a: ['zach', 'danny'], b: ['jack', 'sam'], mode: 'pin', shareA: 0.5 }, // EV / EV
+  { a: ['sean', 'charlie'], b: ['mitch', 'joe'], mode: 'pin', shareA: 140 / 240 }, // -140 / +140
+  { a: ['pat', 'henry'], b: ['nate', 'mike'], mode: 'pin', shareA: 100 / 220 }, // +120 / -120
+  { a: ['pat'], b: ['jack'], mode: 'pin', shareA: 120 / 220 }, // singles: Pat -120 / Jack +120
 ]
+
+// Pinned win share for side `team1`, or null if the matchup isn't pinned.
+export function pinnedShare(team1: string[], team2: string[]): number | null {
+  const k1 = namesKey(team1)
+  const k2 = namesKey(team2)
+  for (const o of OVERRIDES) {
+    if (o.mode !== 'pin') continue
+    const oa = namesKey(o.a)
+    const ob = namesKey(o.b)
+    if (k1 === oa && k2 === ob) return o.shareA
+    if (k1 === ob && k2 === oa) return 1 - o.shareA
+  }
+  return null
+}
 
 const namesKey = (arr: string[]) => arr.map(s => s.trim().toLowerCase()).sort().join('|')
 
@@ -185,7 +203,7 @@ export function cupProbs(
 // Sportsbook moneyline with house juice baked in: a fair 50/50 prices at -110/-110
 // (the standard ~4.8% overround). `share` is a side's head-to-head win share (0-1);
 // ties are treated as a push (draw-no-bet), matching the "-110 each" convention.
-const VIG = 0.0476
+const VIG = 0 // no house edge — lines are clean mirrors of each other
 export function moneyline(share: number): string {
   return toAmerican(Math.min(0.96, share * (1 + VIG)))
 }
