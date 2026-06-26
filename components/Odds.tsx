@@ -65,8 +65,8 @@ const PROPS: Prop[] = [
   {
     title: 'Earliest Closeout (O/U 14.5 holes)',
     outcomes: [
-      { label: 'Under 14.5', odds: '-145' },
-      { label: 'Over 14.5', odds: '+125' },
+      { label: 'Under 14.5', odds: '-140' },
+      { label: 'Over 14.5', odds: '+120' },
     ],
   },
   {
