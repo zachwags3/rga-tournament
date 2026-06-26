@@ -9,13 +9,68 @@ import type { Round, Match, HoleScore, Team } from '@/types/database'
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
 type RoundWithMatches = Round & { matches: MatchWithScores[] }
 
-// Static prop bets — no live movement, just a fixed board. Each prop has a title
-// and a list of outcomes with American odds (string, e.g. "-130", "+220", "EV").
-// Fill these in as Zach provides them.
-type Prop = { title: string; outcomes: { label: string; odds: string }[] }
+// Static prop bets — no live movement, just a fixed board. A prop is either a
+// simple list of outcomes (label + American odds) or a Yes/No table (per-row
+// Yes and No odds). Odds are plain strings, e.g. "-130", "+220", "EV".
+type Prop =
+  | { title: string; outcomes: { label: string; odds: string }[] }
+  | { title: string; yesNo: { label: string; yes: string; no: string }[] }
 const PROPS: Prop[] = [
-  // Example shape (remove once real props are added):
-  // { title: 'Longest Drive', outcomes: [{ label: 'Pat', odds: '-120' }, { label: 'Jack', odds: '+150' }] },
+  {
+    title: 'Longest Drive',
+    outcomes: [
+      { label: 'Sean / Jack / Pat', odds: '-160' },
+      { label: 'The Field', odds: '+140' },
+    ],
+  },
+  {
+    title: 'Lowest Scramble Score (O/U 69.5)',
+    outcomes: [
+      { label: 'Under 69.5', odds: '-110' },
+      { label: 'Over 69.5', odds: 'EV' },
+    ],
+  },
+  {
+    title: 'Lowest Singles Score',
+    outcomes: [
+      { label: 'Pat / Jack', odds: '-200' },
+      { label: 'The Field', odds: '+180' },
+    ],
+  },
+  {
+    title: 'To Drive the Green',
+    yesNo: [
+      { label: 'Pat', yes: '-150', no: '+150' },
+      { label: 'Sean', yes: '-120', no: '+120' },
+      { label: 'Nate', yes: '-120', no: '+120' },
+      { label: 'Jack', yes: '-120', no: '+120' },
+      { label: 'Danny', yes: '+120', no: '-120' },
+      { label: 'Zach', yes: '+120', no: '-120' },
+      { label: 'Charlie', yes: '+120', no: '-120' },
+      { label: 'Sam', yes: '+120', no: '-120' },
+      { label: 'Michael', yes: '+150', no: '-150' },
+      { label: 'Joe', yes: '+150', no: '-150' },
+      { label: 'Henry', yes: '+150', no: '-150' },
+    ],
+  },
+  {
+    title: 'Hole 1 Special',
+    outcomes: [
+      { label: 'At least 1 eagle', odds: '+250' },
+      { label: 'At least 1 birdie', odds: '-190' },
+      { label: 'No bogeys', odds: '+130' },
+    ],
+  },
+  {
+    title: 'RGA MVP',
+    outcomes: [
+      { label: 'Pat / Jack', odds: '+150' },
+      { label: 'Sean / Mitch / Nathan', odds: '+350' },
+      { label: 'Danny / Zach / Charlie', odds: '+750' },
+      { label: 'Sam / Michael', odds: '+1100' },
+      { label: 'Joe / Henry', odds: '+2400' },
+    ],
+  },
 ]
 
 function names(arr: string[]): string {
@@ -299,14 +354,32 @@ export default function Odds() {
               {PROPS.map((prop, i) => (
                 <div key={i}>
                   <p className="text-sm font-semibold text-[#091540] mb-2">{prop.title}</p>
-                  <div className="flex flex-col gap-1">
-                    {prop.outcomes.map((o, j) => (
-                      <div key={j} className="flex items-center justify-between py-1 border-b border-[#091540]/5 last:border-0">
-                        <span className="text-sm text-[#091540]">{o.label}</span>
-                        <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums">{o.odds}</span>
+                  {'yesNo' in prop ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-end gap-4 pb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#091540]/40 w-12 text-right">Yes</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#091540]/40 w-12 text-right">No</span>
                       </div>
-                    ))}
-                  </div>
+                      {prop.yesNo.map((o, j) => (
+                        <div key={j} className="flex items-center justify-between py-1 border-b border-[#091540]/5 last:border-0">
+                          <span className="text-sm text-[#091540]">{o.label}</span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums w-12 text-right">{o.yes}</span>
+                            <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums w-12 text-right">{o.no}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      {prop.outcomes.map((o, j) => (
+                        <div key={j} className="flex items-center justify-between py-1 border-b border-[#091540]/5 last:border-0">
+                          <span className="text-sm text-[#091540]">{o.label}</span>
+                          <span className="text-sm font-semibold text-[#1a3a2a] tabular-nums">{o.odds}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
