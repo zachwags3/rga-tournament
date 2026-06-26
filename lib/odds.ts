@@ -194,9 +194,9 @@ export function moneyline(share: number): string {
 export function toAmerican(p: number): string {
   if (p >= 0.999) return '-100000'
   if (p <= 0.001) return '+100000'
-  const round5 = (x: number) => Math.round(x / 5) * 5
-  if (p >= 0.5) return `-${round5((100 * p) / (1 - p))}`
-  return `+${round5((100 * (1 - p)) / p)}`
+  const round10 = (x: number) => Math.round(x / 10) * 10
+  if (p >= 0.5) return `-${round10((100 * p) / (1 - p))}`
+  return `+${round10((100 * (1 - p)) / p)}`
 }
 
 export const pct = (p: number) => `${Math.round(p * 100)}%`
