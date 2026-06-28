@@ -233,6 +233,7 @@ function IndividualStats({ rounds, matches, scores, teams, pars }: { rounds: Rou
         <table className="w-full text-[10px]">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
+              <th className="w-full py-2" />
               <th className="text-left pl-5 pr-2 py-2 font-semibold text-gray-500 whitespace-nowrap">Player</th>
               <th className="text-center px-3 py-2 font-semibold text-gray-500">Tot</th>
               <th className="text-center px-3 py-2 font-semibold text-gray-500">W/L</th>
@@ -248,6 +249,7 @@ function IndividualStats({ rounds, matches, scores, teams, pars }: { rounds: Rou
           <tbody>
             {stats.map((s, i) => (
               <tr key={i} className="border-b border-gray-50 last:border-0">
+                <td className="w-full" />
                 <td className="pl-5 pr-2 py-2 font-semibold whitespace-nowrap capitalize" style={{ color: s.color }}>{s.name}</td>
                 <td className="text-center px-3 py-2 font-bold" style={{ color: s.color }}>{s.hasScores ? s.total : '—'}</td>
                 <td className="text-center px-3 py-2 font-medium text-gray-600 tabular-nums">{s.w}-{s.l}-{s.t}</td>
