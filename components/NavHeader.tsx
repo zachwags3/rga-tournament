@@ -67,7 +67,7 @@ export default function NavHeader() {
               pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            Leaderboard
+            Stat Sheet
           </Link>
           <Link
             href="/history"
