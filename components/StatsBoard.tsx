@@ -237,10 +237,10 @@ function IndividualStats({ rounds, matches, scores, teams, pars }: { rounds: Rou
               <th className="text-left px-2 py-2 font-semibold text-gray-500 whitespace-nowrap">Player</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500">Tot</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500">W/L</th>
-              <th className="text-center px-1 py-2 font-semibold text-gray-500 whitespace-nowrap">Sat AM</th>
+              <th className="text-center px-1 pl-4 py-2 font-semibold text-gray-500 whitespace-nowrap">Sat AM</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500 whitespace-nowrap">Sat PM</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500">Sun</th>
-              <th className="text-center px-1 py-2 font-semibold text-gray-500">Bir</th>
+              <th className="text-center px-1 pl-4 py-2 font-semibold text-gray-500">Bir</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500">Par</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500">Bog+</th>
             </tr>
@@ -251,10 +251,10 @@ function IndividualStats({ rounds, matches, scores, teams, pars }: { rounds: Rou
                 <td className="px-2 py-2 font-semibold whitespace-nowrap capitalize" style={{ color: s.color }}>{s.name}</td>
                 <td className="text-center px-1 py-2 font-bold" style={{ color: s.color }}>{s.hasScores ? s.total : '—'}</td>
                 <td className="text-center px-1 py-2 font-medium text-gray-600 tabular-nums">{s.w}-{s.l}-{s.t}</td>
-                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[0])}</td>
+                <td className="text-center px-1 pl-4 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[0])}</td>
                 <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[1])}</td>
                 <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[2])}</td>
-                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{s.birdies || '—'}</td>
+                <td className="text-center px-1 pl-4 py-2 font-medium" style={{ color: s.color }}>{s.birdies || '—'}</td>
                 <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{s.pars || '—'}</td>
                 <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{s.bogeyPlus || '—'}</td>
               </tr>
