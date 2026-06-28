@@ -171,10 +171,132 @@ export default function Leaderboard() {
         </div>
       </div>
 
+      {/* Individual stats */}
+      <IndividualStats rounds={rounds} teams={teams} />
+
       {/* Rounds */}
       {rounds.map(round => (
         <RoundSection key={round.id} round={round} team1={team1} team2={team2} />
       ))}
+    </div>
+  )
+}
+
+type PersonStat = {
+  name: string
+  color: string
+  total: number
+  hasScores: boolean
+  byRound: (number | null)[] // [Sat AM, Sat PM, Sun]
+  w: number
+  l: number
+  t: number
+}
+
+// Per-player totals: strokes are a player's side score in their match each round
+// (one match per round), summed across rounds; W-L-T from completed match results.
+function computeIndividualStats(rounds: RoundWithMatches[], teams: Team[]): PersonStat[] {
+  const ordered = [...rounds].sort((a, b) => a.sort_order - b.sort_order)
+  const roundIndex = new Map<string, number>()
+  ordered.slice(0, 3).forEach((r, i) => roundIndex.set(r.id, i))
+
+  const stats = new Map<string, PersonStat>()
+  const ensure = (name: string): PersonStat => {
+    const key = name.toLowerCase()
+    let s = stats.get(key)
+    if (!s) {
+      s = { name, color: '#9ca3af', total: 0, hasScores: false, byRound: [null, null, null], w: 0, l: 0, t: 0 }
+      stats.set(key, s)
+    }
+    return s
+  }
+
+  for (const round of rounds) {
+    const ri = roundIndex.get(round.id)
+    for (const m of round.matches) {
+      const sides = [
+        { names: m.team1_player_names ?? [], teamId: m.team1_id, isTeam1: true },
+        { names: m.team2_player_names ?? [], teamId: m.team2_id, isTeam1: false },
+      ]
+      for (const side of sides) {
+        let strokes = 0
+        let any = false
+        for (const h of m.hole_scores) {
+          const v = side.isTeam1 ? h.team1_score : h.team2_score
+          if (v != null) { strokes += v; any = true }
+        }
+        const color = teams.find(t => t.id === side.teamId)?.color ?? '#9ca3af'
+        let outcome: 'w' | 'l' | 't' | null = null
+        if (m.status === 'complete' && m.result) {
+          if (m.result === 'halved') outcome = 't'
+          else outcome = (m.result === 'team1_win') === side.isTeam1 ? 'w' : 'l'
+        }
+        for (const rawName of side.names) {
+          const name = rawName.trim()
+          if (!name) continue
+          const s = ensure(name)
+          s.color = color
+          if (ri != null && any) {
+            s.byRound[ri] = (s.byRound[ri] ?? 0) + strokes
+            s.total += strokes
+            s.hasScores = true
+          }
+          if (outcome === 'w') s.w++
+          else if (outcome === 'l') s.l++
+          else if (outcome === 't') s.t++
+        }
+      }
+    }
+  }
+
+  return [...stats.values()].sort((a, b) => {
+    if (a.hasScores !== b.hasScores) return a.hasScores ? -1 : 1
+    if (a.hasScores && b.hasScores) return a.total - b.total
+    return a.name.localeCompare(b.name)
+  })
+}
+
+function IndividualStats({ rounds, teams }: { rounds: RoundWithMatches[]; teams: Team[] }) {
+  const stats = computeIndividualStats(rounds, teams)
+  if (stats.length === 0) return null
+  const cell = (n: number | null) => (n == null ? '–' : n)
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm mb-6 overflow-hidden">
+      <div className="px-4 pt-4 pb-2">
+        <h2 className="text-[#1a3a2a] font-bold text-base">Individual Stats</h2>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+              <th className="text-left font-semibold px-4 py-2">Player</th>
+              <th className="text-right font-semibold px-2 py-2">Total</th>
+              <th className="text-right font-semibold px-2 py-2 whitespace-nowrap">W/L</th>
+              <th className="text-right font-semibold px-2 py-2 whitespace-nowrap">Sat AM</th>
+              <th className="text-right font-semibold px-2 py-2 whitespace-nowrap">Sat PM</th>
+              <th className="text-right font-semibold px-4 py-2">Sun</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.map(s => (
+              <tr key={s.name} className="border-b border-gray-50 last:border-0">
+                <td className="px-4 py-2">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                    <span className="font-medium text-[#1a3a2a] capitalize">{s.name}</span>
+                  </div>
+                </td>
+                <td className="text-right px-2 py-2 font-semibold tabular-nums text-[#1a3a2a]">{s.hasScores ? s.total : '–'}</td>
+                <td className="text-right px-2 py-2 tabular-nums text-gray-600">{s.w}-{s.l}-{s.t}</td>
+                <td className="text-right px-2 py-2 tabular-nums text-gray-600">{cell(s.byRound[0])}</td>
+                <td className="text-right px-2 py-2 tabular-nums text-gray-600">{cell(s.byRound[1])}</td>
+                <td className="text-right px-4 py-2 tabular-nums text-gray-600">{cell(s.byRound[2])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
