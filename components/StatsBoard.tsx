@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 type Round  = { id: string; name: string; holes: number; format: string; sort_order: number }
-type Match  = { id: string; round_id: string; match_number: number; team1_id: string; team2_id: string; team1_player_names: string[]; team2_player_names: string[] }
+type Match  = { id: string; round_id: string; match_number: number; team1_id: string; team2_id: string; team1_player_names: string[]; team2_player_names: string[]; status?: string; result?: 'team1_win' | 'team2_win' | 'halved' | null }
 type HScore = { match_id: string; hole_number: number; team1_score: number | null; team2_score: number | null }
 type Team   = { id: string; name: string; color: string; captain_name: string }
 type Pars   = Record<number, number>
@@ -129,6 +129,120 @@ function ResultChip({ result, matchNum }: { result: Result; matchNum: number }) 
   )
 }
 
+type PersonStat = {
+  name: string
+  color: string
+  total: number
+  hasScores: boolean
+  byRound: (number | null)[] // [Sat AM, Sat PM, Sun]
+  w: number
+  l: number
+  t: number
+}
+
+// Cross-round per-player summary: strokes are a player's side score in their match
+// each round (one match per round), summed; W-L-T from completed match results only.
+function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScore[], teams: Team[]): PersonStat[] {
+  const ordered = [...rounds].sort((a, b) => a.sort_order - b.sort_order)
+  const roundIndex = new Map<string, number>()
+  ordered.slice(0, 3).forEach((r, i) => roundIndex.set(r.id, i))
+
+  const stats = new Map<string, PersonStat>()
+  const ensure = (name: string): PersonStat => {
+    const key = name.toLowerCase()
+    let s = stats.get(key)
+    if (!s) {
+      s = { name, color: '#9ca3af', total: 0, hasScores: false, byRound: [null, null, null], w: 0, l: 0, t: 0 }
+      stats.set(key, s)
+    }
+    return s
+  }
+
+  for (const m of matches) {
+    const ri = roundIndex.get(m.round_id)
+    const matchScores = scores.filter(s => s.match_id === m.id)
+    const sides = [
+      { names: m.team1_player_names ?? [], teamId: m.team1_id, isTeam1: true },
+      { names: m.team2_player_names ?? [], teamId: m.team2_id, isTeam1: false },
+    ]
+    for (const side of sides) {
+      let strokes = 0
+      let any = false
+      for (const h of matchScores) {
+        const v = side.isTeam1 ? h.team1_score : h.team2_score
+        if (v != null && v > 0) { strokes += v; any = true }
+      }
+      const color = teams.find(t => t.id === side.teamId)?.color ?? '#9ca3af'
+      let outcome: 'w' | 'l' | 't' | null = null
+      if (m.status === 'complete' && m.result) {
+        if (m.result === 'halved') outcome = 't'
+        else outcome = (m.result === 'team1_win') === side.isTeam1 ? 'w' : 'l'
+      }
+      for (const rawName of side.names) {
+        const name = rawName.trim()
+        if (!name) continue
+        const s = ensure(name)
+        s.color = color
+        if (ri != null && any) {
+          s.byRound[ri] = (s.byRound[ri] ?? 0) + strokes
+          s.total += strokes
+          s.hasScores = true
+        }
+        if (outcome === 'w') s.w++
+        else if (outcome === 'l') s.l++
+        else if (outcome === 't') s.t++
+      }
+    }
+  }
+
+  return [...stats.values()].sort((a, b) => {
+    if (a.hasScores !== b.hasScores) return a.hasScores ? -1 : 1
+    if (a.hasScores && b.hasScores) return a.total - b.total
+    return a.name.localeCompare(b.name)
+  })
+}
+
+function IndividualStats({ rounds, matches, scores, teams }: { rounds: Round[]; matches: Match[]; scores: HScore[]; teams: Team[] }) {
+  const stats = computeIndividualStats(rounds, matches, scores, teams)
+  if (stats.length === 0) return null
+  const cell = (n: number | null) => (n == null ? '—' : n)
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+      <div className="bg-[#091540] px-4 py-3">
+        <div className="text-white font-bold text-sm">Individual Stats</div>
+        <div className="text-white/50 text-xs">All rounds · ordered by total strokes</div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[10px]">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50">
+              <th className="text-left px-2 py-2 font-semibold text-gray-500 whitespace-nowrap">Player</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500">Tot</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500">W/L</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500 whitespace-nowrap">Sat AM</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500 whitespace-nowrap">Sat PM</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500">Sun</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.map((s, i) => (
+              <tr key={i} className="border-b border-gray-50 last:border-0">
+                <td className="px-2 py-2 font-semibold whitespace-nowrap capitalize" style={{ color: s.color }}>{s.name}</td>
+                <td className="text-center px-1 py-2 font-bold" style={{ color: s.color }}>{s.hasScores ? s.total : '—'}</td>
+                <td className="text-center px-1 py-2 font-medium text-gray-600 tabular-nums">{s.w}-{s.l}-{s.t}</td>
+                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[0])}</td>
+                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[1])}</td>
+                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[2])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 export default function StatsBoard() {
   const [rounds,  setRounds]  = useState<Round[]>([])
   const [matches, setMatches] = useState<Match[]>([])
@@ -189,6 +303,8 @@ export default function StatsBoard() {
 
   return (
     <div className="space-y-6 pb-12">
+      <IndividualStats rounds={rounds} matches={matches} scores={scores} teams={teams} />
+
       {rounds.map(round => {
         const roundMatches = matches
           .filter(m => m.round_id === round.id)
