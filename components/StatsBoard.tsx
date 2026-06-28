@@ -138,11 +138,14 @@ type PersonStat = {
   w: number
   l: number
   t: number
+  birdies: number
+  pars: number
+  bogeyPlus: number // bogey or worse
 }
 
 // Cross-round per-player summary: strokes are a player's side score in their match
 // each round (one match per round), summed; W-L-T from completed match results only.
-function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScore[], teams: Team[]): PersonStat[] {
+function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScore[], teams: Team[], pars: Record<string, Pars>): PersonStat[] {
   const ordered = [...rounds].sort((a, b) => a.sort_order - b.sort_order)
   const roundIndex = new Map<string, number>()
   ordered.slice(0, 3).forEach((r, i) => roundIndex.set(r.id, i))
@@ -152,7 +155,7 @@ function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScor
     const key = name.toLowerCase()
     let s = stats.get(key)
     if (!s) {
-      s = { name, color: '#9ca3af', total: 0, hasScores: false, byRound: [null, null, null], w: 0, l: 0, t: 0 }
+      s = { name, color: '#9ca3af', total: 0, hasScores: false, byRound: [null, null, null], w: 0, l: 0, t: 0, birdies: 0, pars: 0, bogeyPlus: 0 }
       stats.set(key, s)
     }
     return s
@@ -160,6 +163,7 @@ function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScor
 
   for (const m of matches) {
     const ri = roundIndex.get(m.round_id)
+    const roundPars = pars[m.round_id] ?? {}
     const matchScores = scores.filter(s => s.match_id === m.id)
     const sides = [
       { names: m.team1_player_names ?? [], teamId: m.team1_id, isTeam1: true },
@@ -168,9 +172,19 @@ function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScor
     for (const side of sides) {
       let strokes = 0
       let any = false
+      let bir = 0, par = 0, bogPlus = 0
       for (const h of matchScores) {
         const v = side.isTeam1 ? h.team1_score : h.team2_score
-        if (v != null && v > 0) { strokes += v; any = true }
+        if (v == null || v <= 0) continue
+        strokes += v
+        any = true
+        const p = roundPars[h.hole_number]
+        if (p) {
+          const d = v - p
+          if (d <= -1) bir++
+          else if (d === 0) par++
+          else bogPlus++
+        }
       }
       const color = teams.find(t => t.id === side.teamId)?.color ?? '#9ca3af'
       let outcome: 'w' | 'l' | 't' | null = null
@@ -188,6 +202,9 @@ function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScor
           s.total += strokes
           s.hasScores = true
         }
+        s.birdies += bir
+        s.pars += par
+        s.bogeyPlus += bogPlus
         if (outcome === 'w') s.w++
         else if (outcome === 'l') s.l++
         else if (outcome === 't') s.t++
@@ -202,8 +219,8 @@ function computeIndividualStats(rounds: Round[], matches: Match[], scores: HScor
   })
 }
 
-function IndividualStats({ rounds, matches, scores, teams }: { rounds: Round[]; matches: Match[]; scores: HScore[]; teams: Team[] }) {
-  const stats = computeIndividualStats(rounds, matches, scores, teams)
+function IndividualStats({ rounds, matches, scores, teams, pars }: { rounds: Round[]; matches: Match[]; scores: HScore[]; teams: Team[]; pars: Record<string, Pars> }) {
+  const stats = computeIndividualStats(rounds, matches, scores, teams, pars)
   if (stats.length === 0) return null
   const cell = (n: number | null) => (n == null ? '—' : n)
 
@@ -223,6 +240,9 @@ function IndividualStats({ rounds, matches, scores, teams }: { rounds: Round[]; 
               <th className="text-center px-1 py-2 font-semibold text-gray-500 whitespace-nowrap">Sat AM</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500 whitespace-nowrap">Sat PM</th>
               <th className="text-center px-1 py-2 font-semibold text-gray-500">Sun</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500">Bir</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500">Par</th>
+              <th className="text-center px-1 py-2 font-semibold text-gray-500">Bog+</th>
             </tr>
           </thead>
           <tbody>
@@ -234,6 +254,9 @@ function IndividualStats({ rounds, matches, scores, teams }: { rounds: Round[]; 
                 <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[0])}</td>
                 <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[1])}</td>
                 <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{cell(s.byRound[2])}</td>
+                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{s.birdies || '—'}</td>
+                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{s.pars || '—'}</td>
+                <td className="text-center px-1 py-2 font-medium" style={{ color: s.color }}>{s.bogeyPlus || '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -303,7 +326,7 @@ export default function StatsBoard() {
 
   return (
     <div className="space-y-6 pb-12">
-      <IndividualStats rounds={rounds} matches={matches} scores={scores} teams={teams} />
+      <IndividualStats rounds={rounds} matches={matches} scores={scores} teams={teams} pars={pars} />
 
       {rounds.map(round => {
         const roundMatches = matches
@@ -375,8 +398,8 @@ export default function StatsBoard() {
                     <th className="text-center px-1 py-2 font-semibold text-gray-500">F9</th>
                     {!show9Only && <th className="text-center px-1 py-2 font-semibold text-gray-500">B9</th>}
                     <th className="text-center px-1 py-2 font-semibold text-gray-500">Tot</th>
-                    <th className="text-center px-1 py-2 font-semibold text-gray-500">Par</th>
                     <th className="text-center px-1 py-2 font-semibold text-gray-500">Bir</th>
+                    <th className="text-center px-1 py-2 font-semibold text-gray-500">Par</th>
                     <th className="text-center px-1 py-2 font-semibold text-gray-500">Bog</th>
                     <th className="text-center px-1 py-2 font-semibold text-gray-500">Dbl+</th>
                   </tr>
@@ -393,8 +416,8 @@ export default function StatsBoard() {
                       <td className="text-center px-1 py-2 font-medium" style={{ color: row.color }}>{n(row.f9)}</td>
                       {!show9Only && <td className="text-center px-1 py-2 font-medium" style={{ color: row.color }}>{n(row.b9)}</td>}
                       <td className="text-center px-1 py-2 font-bold"   style={{ color: row.color }}>{n(row.total)}</td>
-                      <td className="text-center px-1 py-2 font-medium" style={{ color: row.color }}>{row.pars    || '—'}</td>
                       <td className="text-center px-1 py-2 font-medium" style={{ color: row.color }}>{row.birdies || '—'}</td>
+                      <td className="text-center px-1 py-2 font-medium" style={{ color: row.color }}>{row.pars    || '—'}</td>
                       <td className="text-center px-1 py-2 font-medium" style={{ color: row.color }}>{row.bogeys  || '—'}</td>
                       <td className="text-center px-1 py-2 font-medium" style={{ color: row.color }}>{row.doubles || '—'}</td>
                     </tr>
@@ -408,8 +431,8 @@ export default function StatsBoard() {
                       <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{n(t.f9)}</td>
                       {!show9Only && <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{n(t.b9)}</td>}
                       <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{n(t.total)}</td>
-                      <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{t.pars    || '—'}</td>
                       <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{t.birdies || '—'}</td>
+                      <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{t.pars    || '—'}</td>
                       <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{t.bogeys  || '—'}</td>
                       <td className="text-center px-1 py-2 font-bold" style={{ color: t.color }}>{t.doubles || '—'}</td>
                     </tr>
