@@ -26,6 +26,11 @@ const OVERRIDES: Override[] = [
   { a: ['sean', 'charlie'], b: ['mitch', 'joe'], mode: 'pin', shareA: 140 / 240 }, // -140 / +140
   { a: ['pat', 'henry'], b: ['nate', 'mike'], mode: 'pin', shareA: 100 / 220 }, // +120 / -120
   { a: ['pat'], b: ['jack'], mode: 'pin', shareA: 120 / 220 }, // singles: Pat -120 / Jack +120
+  { a: ['henry'], b: ['joe'], mode: 'pin', shareA: 140 / 240 }, // singles: Henry -140 / Joe +140
+  { a: ['sean'], b: ['mitch'], mode: 'pin', shareA: 100 / 230 }, // singles: Sean +130 / Mitch -130
+  { a: ['zach'], b: ['nate'], mode: 'pin', shareA: 100 / 240 }, // singles: Zach +140 / Nate -140
+  { a: ['danny'], b: ['sam'], mode: 'pin', shareA: 160 / 260 }, // singles: Danny -160 / Sam +160
+  { a: ['charlie'], b: ['mike'], mode: 'pin', shareA: 110 / 210 }, // singles: Charlie -110 / Mike +110
 ]
 
 // Pinned win share for side `team1`, or null if the matchup isn't pinned.
