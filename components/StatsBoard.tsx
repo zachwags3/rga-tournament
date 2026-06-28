@@ -228,7 +228,6 @@ function IndividualStats({ rounds, matches, scores, teams, pars }: { rounds: Rou
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
       <div className="bg-[#091540] px-4 py-3">
         <div className="text-white font-bold text-sm">Individual Stats</div>
-        <div className="text-white/50 text-xs">All rounds · ordered by total strokes</div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-[10px]">
