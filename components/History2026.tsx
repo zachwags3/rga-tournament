@@ -32,7 +32,6 @@ export default function History2026() {
   })
   const standings = [...SEASON_2026.teams].sort((a, b) => (points[b.id] ?? 0) - (points[a.id] ?? 0))
   const champ = standings[0]
-  const fmt = (n: number) => (n % 1 === 0 ? String(n) : n.toFixed(1))
 
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -54,11 +53,7 @@ export default function History2026() {
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#e8c96a] mb-1">2026 Champions</p>
               <p className="text-2xl font-bold text-white">🏆 {champ.name}</p>
               <p className="text-white/60 text-xs mt-1">Capt. {champ.captain_name}</p>
-              {standings.length > 1 && (
-                <p className="text-white/40 text-xs mt-2 tabular-nums">
-                  Final {fmt(points[champ.id] ?? 0)} – {fmt(points[standings[1].id] ?? 0)}
-                </p>
-              )}
+              <p className="text-white/60 text-xs">MVP Nate</p>
             </div>
           )}
 
@@ -74,7 +69,7 @@ export default function History2026() {
           {cup.hasMatches && (
             <section>
               <SectionLabel>Cup Line Movement</SectionLabel>
-              <CupMovement grayColor={cup.gray?.color ?? '#9ca3af'} cupS={cup.cupNow.s} seriesV={cup.seriesV} />
+              <CupMovement grayColor={cup.gray?.color ?? '#9ca3af'} cupS={cup.cupNow.s} seriesV={cup.seriesV} chartOnly />
             </section>
           )}
 

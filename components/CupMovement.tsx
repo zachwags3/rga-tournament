@@ -42,28 +42,32 @@ export default function CupMovement({
   cupS,
   seriesV,
   className = '',
+  chartOnly = false,
 }: {
   grayColor: string
   cupS: number
   seriesV: number[]
   className?: string
+  chartOnly?: boolean // hide the title + odds header, show only the chart
 }) {
   const navyChart = '#7aa2ff'
   return (
     <div className={`bg-[#091540] rounded-2xl shadow-sm px-4 py-4 ${className}`}>
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#e8c96a]">Cup Winner — Live Movement</p>
-        <div className="flex items-center gap-3 text-sm font-semibold">
-          <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: grayColor }} />
-            <span className="text-[#e8c96a] tabular-nums">{moneyline(cupS)}</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: navyChart }} />
-            <span className="text-[#e8c96a] tabular-nums">{moneyline(1 - cupS)}</span>
-          </span>
+      {!chartOnly && (
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#e8c96a]">Cup Winner — Live Movement</p>
+          <div className="flex items-center gap-3 text-sm font-semibold">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: grayColor }} />
+              <span className="text-[#e8c96a] tabular-nums">{moneyline(cupS)}</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: navyChart }} />
+              <span className="text-[#e8c96a] tabular-nums">{moneyline(1 - cupS)}</span>
+            </span>
+          </div>
         </div>
-      </div>
+      )}
       <CupChart v={seriesV} grayColor={grayColor} navyColor={navyChart} />
     </div>
   )
