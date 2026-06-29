@@ -22,6 +22,18 @@ export default function History2026() {
     assembleRounds(SEASON_2026.rounds, SEASON_2026.matches, SEASON_2026.hole_scores)
   )
 
+  // Final standings from completed matches -> champion + final score.
+  const points: Record<string, number> = {}
+  SEASON_2026.teams.forEach(t => { points[t.id] = 0 })
+  SEASON_2026.matches.forEach(m => {
+    if (m.status !== 'complete') return
+    points[m.team1_id] = (points[m.team1_id] ?? 0) + Number(m.rga_points_team1)
+    points[m.team2_id] = (points[m.team2_id] ?? 0) + Number(m.rga_points_team2)
+  })
+  const standings = [...SEASON_2026.teams].sort((a, b) => (points[b.id] ?? 0) - (points[a.id] ?? 0))
+  const champ = standings[0]
+  const fmt = (n: number) => (n % 1 === 0 ? String(n) : n.toFixed(1))
+
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
       <button
@@ -34,6 +46,22 @@ export default function History2026() {
 
       {open && (
         <div className="px-4 pb-6 flex flex-col gap-10 border-t border-gray-100 pt-6">
+          {champ && (
+            <div
+              className="rounded-2xl bg-[#091540] px-5 py-5 text-center shadow-sm border-[3px]"
+              style={{ borderColor: champ.color }}
+            >
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#e8c96a] mb-1">2026 Champions</p>
+              <p className="text-2xl font-bold text-white">🏆 {champ.name}</p>
+              <p className="text-white/60 text-xs mt-1">Capt. {champ.captain_name}</p>
+              {standings.length > 1 && (
+                <p className="text-white/40 text-xs mt-2 tabular-nums">
+                  Final {fmt(points[champ.id] ?? 0)} – {fmt(points[standings[1].id] ?? 0)}
+                </p>
+              )}
+            </div>
+          )}
+
           <section>
             <DraftHistory snapshot={SEASON_2026} />
           </section>
