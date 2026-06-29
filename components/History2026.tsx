@@ -46,7 +46,7 @@ export default function History2026() {
       </button>
 
       {open && (
-        <div className="px-4 pb-6 flex flex-col gap-10 border-t border-gray-100 pt-6">
+        <div className="px-2 pb-6 flex flex-col gap-10 border-t border-gray-100 pt-6">
           {champ && (
             <div
               className="rounded-2xl bg-[#091540] px-5 py-5 text-center shadow-sm border-[3px]"

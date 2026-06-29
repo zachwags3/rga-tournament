@@ -6,7 +6,7 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--cream)' }}>
       <NavHeader />
-      <main className="pt-5 px-4 max-w-2xl mx-auto pb-12">
+      <main className="pt-5 px-3 max-w-4xl mx-auto pb-12">
         <h1 className="text-2xl font-bold text-[#091540] mb-4">History</h1>
         <History2026 />
         <div className="mt-8 flex flex-col items-center gap-4">

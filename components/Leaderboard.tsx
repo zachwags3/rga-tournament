@@ -146,7 +146,7 @@ export default function Leaderboard({ snapshot, readOnly }: { snapshot?: SeasonS
   const cardColor2 = '#6b8fe0'  // lighter navy blue
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pb-12">
+    <div className={readOnly ? 'w-full' : 'max-w-2xl mx-auto px-4 pb-12'}>
       {/* Overall scoreboard */}
       <div className="bg-[#091540] rounded-2xl overflow-hidden shadow-sm mb-6 border-[5px]" style={{ borderColor }}>
         <div className="px-5 pt-5 pb-3 text-center">
@@ -315,7 +315,7 @@ function MatchCard({ match, round, team1, team2, readOnly }: {
         {/* Hole progress bar */}
         {status.holesPlayed > 0 && (
           <div className="mt-3">
-            <div className="flex gap-2 flex-wrap justify-center">
+            <div className={readOnly ? 'grid grid-cols-9 gap-1.5' : 'flex gap-2 flex-wrap justify-center'}>
               {Array.from({ length: round.holes }).map((_, i) => {
                 const holeScore = match.hole_scores.find(h => h.hole_number === i + 1)
                 const bgColor = holeScore?.winner === 'team1' ? team1?.color
@@ -328,8 +328,8 @@ function MatchCard({ match, round, team1, team2, readOnly }: {
                 return (
                   <div
                     key={i}
-                    className="flex items-center justify-center rounded text-[9px] font-semibold transition-colors"
-                    style={{ backgroundColor: bgColor, color: textColor, width: 26, height: 26 }}
+                    className={`flex items-center justify-center rounded text-[10px] font-semibold transition-colors ${readOnly ? 'aspect-square w-full' : ''}`}
+                    style={readOnly ? { backgroundColor: bgColor, color: textColor } : { backgroundColor: bgColor, color: textColor, width: 26, height: 26 }}
                   >
                     {i + 1}
                   </div>
