@@ -114,7 +114,7 @@ export default function Leaderboard({ snapshot, readOnly }: { snapshot?: SeasonS
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="text-4xl mb-3">⛳</div>
+          <Image src="/rga-logo.png" alt="RGA" width={64} height={64} className="mx-auto mb-3 drop-shadow-md animate-pulse" />
           <p className="text-[#2d5a3d] font-semibold">Loading leaderboard...</p>
         </div>
       </div>
