@@ -125,12 +125,12 @@ export default function Leaderboard({ snapshot, readOnly }: { snapshot?: SeasonS
       <div className="flex items-center justify-center min-h-[60vh] px-4">
         <div className="text-center bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full">
           <div className="text-5xl mb-4">⛳</div>
-          <h2 className="text-xl font-bold text-[#1a3a2a] mb-2">Tournament not set up yet</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            An admin needs to configure teams and pairings before scores can be tracked.
+          <h2 className="text-2xl font-bold text-[#091540] mb-2">On to 2027…</h2>
+          <p className="text-gray-400 text-sm mb-6">
+            Check the History tab for past scores and winners
           </p>
-          <Link href="/admin" className="inline-block bg-[#2d5a3d] text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-[#1a3a2a] transition-colors">
-            Go to Admin Setup →
+          <Link href="/admin" className="text-[#091540]/40 hover:text-[#091540] transition-colors text-xs font-medium underline underline-offset-2">
+            Admin
           </Link>
         </div>
       </div>
