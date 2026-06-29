@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus, calcRgaPoints } from '@/lib/matchplay'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
@@ -124,7 +125,7 @@ export default function Leaderboard({ snapshot, readOnly }: { snapshot?: SeasonS
     return (
       <div className="flex items-center justify-center min-h-[60vh] px-4">
         <div className="text-center bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full">
-          <div className="text-5xl mb-4">⛳</div>
+          <Image src="/rga-logo.png" alt="RGA" width={72} height={72} className="mx-auto mb-4 drop-shadow-md" />
           <h2 className="text-2xl font-bold text-[#091540] mb-2">On to 2027…</h2>
           <p className="text-gray-400 text-sm mb-6">
             Check the History tab for past scores and winners
