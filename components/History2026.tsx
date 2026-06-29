@@ -80,7 +80,7 @@ export default function History2026() {
 
           <section>
             <SectionLabel>Stat Sheet</SectionLabel>
-            <StatsBoard snapshot={SEASON_2026} />
+            <StatsBoard snapshot={SEASON_2026} individualOnly />
           </section>
         </div>
       )}

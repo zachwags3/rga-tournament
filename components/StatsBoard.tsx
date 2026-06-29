@@ -282,7 +282,7 @@ function buildPars(
   return parsMap
 }
 
-export default function StatsBoard({ snapshot }: { snapshot?: SeasonSnapshot } = {}) {
+export default function StatsBoard({ snapshot, individualOnly }: { snapshot?: SeasonSnapshot; individualOnly?: boolean } = {}) {
   const [rounds,  setRounds]  = useState<Round[]>(snapshot?.rounds ?? [])
   const [matches, setMatches] = useState<Match[]>(snapshot?.matches ?? [])
   const [scores,  setScores]  = useState<HScore[]>(snapshot?.hole_scores ?? [])
@@ -333,7 +333,7 @@ export default function StatsBoard({ snapshot }: { snapshot?: SeasonSnapshot } =
     <div className="space-y-6 pb-12">
       <IndividualStats rounds={rounds} matches={matches} scores={scores} teams={teams} pars={pars} />
 
-      {rounds.map(round => {
+      {!individualOnly && rounds.map(round => {
         const roundMatches = matches
           .filter(m => m.round_id === round.id)
           .sort((a, b) => a.match_number - b.match_number)
