@@ -56,6 +56,7 @@ export default function History2026() {
               <p className="text-2xl font-bold text-white">🏆 {champ.name}</p>
               <p className="text-white/60 text-xs mt-1">Capt. {champ.captain_name}</p>
               <p className="text-white/60 text-xs">MVP Nate</p>
+              <p className="text-white/45 text-xs mt-1">Mitch, Joe, Sam, Mike</p>
             </div>
           )}
 
