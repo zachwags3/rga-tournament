@@ -130,7 +130,7 @@ export default function Odds() {
 
   const colorFor = (id: string | null) => (id && teams.find(t => t.id === id)?.color) || '#9ca3af'
 
-  const { gray, navy, hasMatches, cupNow, seriesV } = computeCup(teams, rounds)
+  const { gray, navy, hasMatches, cupNow, seriesV, roundMarkers } = computeCup(teams, rounds)
 
   return (
     <>
@@ -239,7 +239,7 @@ export default function Odds() {
       )}
 
       {!loading && hasMatches && (
-        <CupMovement grayColor={gray?.color ?? '#9ca3af'} cupS={cupNow.s} seriesV={seriesV} className="mt-6" />
+        <CupMovement grayColor={gray?.color ?? '#9ca3af'} cupS={cupNow.s} seriesV={seriesV} markers={roundMarkers} className="mt-6" />
       )}
 
       {!loading && PROPS.length > 0 && (

@@ -22,12 +22,20 @@ export function assembleRounds(
     }))
 }
 
+export type RoundMarker = { label: string; frac: number } // frac = 0..1 position along the x-axis
+
 export type CupResult = {
   gray?: Team
   navy?: Team
   hasMatches: boolean
   cupNow: { g: number; n: number; s: number }
   seriesV: number[] // Gray's win share over time (0–100, 50 = even), one point per scored hole
+  roundMarkers: RoundMarker[] // x-axis ticks at the start of each round
+}
+
+// Short round label for the chart axis, e.g. "Saturday AM — 2v2 Scramble" -> "Sat AM".
+function shortRoundLabel(name: string): string {
+  return name.split('—')[0].trim().replace('Saturday', 'Sat').replace('Sunday', 'Sun')
 }
 
 // Cup Winner probabilities + live-movement series, derived from the match-play model.
@@ -92,5 +100,17 @@ export function computeCup(teams: Team[], rounds: RoundWithMatches[]): CupResult
   const seriesPts = [0, ...times].map(t => cupPct(cupProbs(matchProbsAt(t))))
   const seriesV = seriesPts.map(p => (p.g + p.n > 0 ? (p.g / (p.g + p.n)) * 100 : 50))
 
-  return { gray, navy, hasMatches, cupNow, seriesV }
+  // Round-start markers: where each round's first scored hole lands on the timeline.
+  const roundMarkers: RoundMarker[] = []
+  if (times.length > 1) {
+    for (const r of [...rounds].sort((a, b) => a.sort_order - b.sort_order)) {
+      const ts = r.matches.flatMap(m => m.hole_scores.map(h => Date.parse(h.created_at)))
+      if (ts.length === 0) continue
+      const idx = times.indexOf(Math.min(...ts))
+      if (idx < 0) continue
+      roundMarkers.push({ label: shortRoundLabel(r.name), frac: idx / times.length })
+    }
+  }
+
+  return { gray, navy, hasMatches, cupNow, seriesV, roundMarkers }
 }

@@ -71,7 +71,7 @@ export default function History2026() {
           {cup.hasMatches && (
             <section>
               <SectionLabel>Cup Line Movement</SectionLabel>
-              <CupMovement grayColor={cup.gray?.color ?? '#9ca3af'} cupS={cup.cupNow.s} seriesV={cup.seriesV} chartOnly />
+              <CupMovement grayColor={cup.gray?.color ?? '#9ca3af'} cupS={cup.cupNow.s} seriesV={cup.seriesV} markers={cup.roundMarkers} chartOnly />
             </section>
           )}
 
