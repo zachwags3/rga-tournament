@@ -40,6 +40,14 @@ export default function NavHeader() {
             Scoreboard
           </Link>
           <Link
+            href="/history"
+            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+              pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            History
+          </Link>
+          <Link
             href="/feed"
             className={`relative px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/feed' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
@@ -67,15 +75,7 @@ export default function NavHeader() {
               pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            Stat Sheet
-          </Link>
-          <Link
-            href="/history"
-            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
-              pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            History
+            Stats
           </Link>
         </div>
 
