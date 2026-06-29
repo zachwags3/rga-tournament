@@ -37,10 +37,12 @@ export default function History2026() {
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4"
+        className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left"
       >
-        <span className="text-lg font-bold text-[#091540]">2026</span>
-        <span className={`text-[#091540]/60 text-2xl leading-none transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+        <span className="text-base font-bold text-[#091540]">
+          2026 <span className="font-semibold text-[#091540]/55">· Navy def. Gray, 7.5–4.5</span>
+        </span>
+        <span className={`shrink-0 text-[#091540]/60 text-2xl leading-none transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
 
       {open && (
