@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import NavHeader from '@/components/NavHeader'
-import DraftHistory from '@/components/DraftHistory'
+import History2026 from '@/components/History2026'
 
 export default function HistoryPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--cream)' }}>
       <NavHeader />
       <main className="pt-5 px-4 max-w-2xl mx-auto pb-12">
-        <DraftHistory />
+        <h1 className="text-2xl font-bold text-[#091540] mb-4">History</h1>
+        <History2026 />
         <div className="mt-8 flex flex-col items-center gap-4">
           <a
             href="/2026%20RGA%20Bylaws.pdf"

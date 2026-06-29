@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import type { SeasonSnapshot } from '@/lib/history/season2026'
 
 type Round  = { id: string; name: string; holes: number; format: string; sort_order: number }
 type Match  = { id: string; round_id: string; match_number: number; team1_id: string; team2_id: string; team1_player_names: string[]; team2_player_names: string[]; status?: string; result?: 'team1_win' | 'team2_win' | 'halved' | null }
@@ -265,15 +266,34 @@ function IndividualStats({ rounds, matches, scores, teams, pars }: { rounds: Rou
   )
 }
 
-export default function StatsBoard() {
-  const [rounds,  setRounds]  = useState<Round[]>([])
-  const [matches, setMatches] = useState<Match[]>([])
-  const [scores,  setScores]  = useState<HScore[]>([])
-  const [teams,   setTeams]   = useState<Team[]>([])
-  const [pars,    setPars]    = useState<Record<string, Pars>>({})
-  const [loading, setLoading] = useState(true)
+function buildPars(
+  rounds: { id: string }[],
+  courses: { id: string; round_id: string }[],
+  courseHoles: { course_id: string; hole_number: number; par: number }[],
+): Record<string, Pars> {
+  const parsMap: Record<string, Pars> = {}
+  rounds.forEach(r => {
+    const course = courses.find(c => c.round_id === r.id)
+    if (!course) return
+    const hp: Pars = {}
+    courseHoles.filter(h => h.course_id === course.id).forEach(h => { hp[h.hole_number] = h.par })
+    parsMap[r.id] = hp
+  })
+  return parsMap
+}
+
+export default function StatsBoard({ snapshot }: { snapshot?: SeasonSnapshot } = {}) {
+  const [rounds,  setRounds]  = useState<Round[]>(snapshot?.rounds ?? [])
+  const [matches, setMatches] = useState<Match[]>(snapshot?.matches ?? [])
+  const [scores,  setScores]  = useState<HScore[]>(snapshot?.hole_scores ?? [])
+  const [teams,   setTeams]   = useState<Team[]>(snapshot?.teams ?? [])
+  const [pars,    setPars]    = useState<Record<string, Pars>>(
+    snapshot ? buildPars(snapshot.rounds, snapshot.courses, snapshot.course_holes) : {}
+  )
+  const [loading, setLoading] = useState(!snapshot)
 
   useEffect(() => {
+    if (snapshot) return // frozen archive — no fetch
     async function load() {
       const [rRes, mRes, sRes, tRes, cRes, chRes] = await Promise.all([
         supabase.from('rounds').select('*').order('sort_order'),
@@ -284,25 +304,11 @@ export default function StatsBoard() {
         supabase.from('course_holes').select('course_id,hole_number,par'),
       ])
       const roundsData: Round[] = rRes.data ?? []
-      const coursesData         = cRes.data  ?? []
-      const holesData           = chRes.data ?? []
-
-      const parsMap: Record<string, Pars> = {}
-      roundsData.forEach(r => {
-        const course = coursesData.find((c: { id: string; round_id: string }) => c.round_id === r.id)
-        if (!course) return
-        const hp: Pars = {}
-        holesData
-          .filter((h: { course_id: string; hole_number: number; par: number }) => h.course_id === course.id)
-          .forEach((h: { course_id: string; hole_number: number; par: number }) => { hp[h.hole_number] = h.par })
-        parsMap[r.id] = hp
-      })
-
       setRounds(roundsData)
       setMatches(mRes.data ?? [])
       setScores(sRes.data ?? [])
       setTeams(tRes.data ?? [])
-      setPars(parsMap)
+      setPars(buildPars(roundsData, cRes.data ?? [], chRes.data ?? []))
       setLoading(false)
     }
 
@@ -315,7 +321,7 @@ export default function StatsBoard() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  }, [snapshot])
 
   if (loading) return <div className="p-8 text-center text-[#2d5a3d]">Loading stats...</div>
   if (teams.length < 2) return <div className="p-8 text-center text-gray-400">No data yet.</div>

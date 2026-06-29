@@ -5,14 +5,38 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus, calcRgaPoints } from '@/lib/matchplay'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
+import type { SeasonSnapshot } from '@/lib/history/season2026'
 
 type MatchWithScores = Match & { hole_scores: HoleScore[] }
 type RoundWithMatches = Round & { matches: MatchWithScores[]; courseName: string | null }
 
-export default function Leaderboard() {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [rounds, setRounds] = useState<RoundWithMatches[]>([])
-  const [loading, setLoading] = useState(true)
+function assembleRounds(
+  roundsData: Round[],
+  matchesData: Match[],
+  scoresData: HoleScore[],
+  coursesData: { id: string; name: string; round_id: string }[],
+): RoundWithMatches[] {
+  const matchesWithScores: MatchWithScores[] = matchesData.map(m => ({
+    ...m,
+    hole_scores: scoresData.filter(s => s.match_id === m.id),
+  }))
+  return [...roundsData]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map(r => ({
+      ...r,
+      matches: matchesWithScores
+        .filter(m => m.round_id === r.id)
+        .sort((a, b) => a.match_number - b.match_number),
+      courseName: coursesData.find(c => c.round_id === r.id)?.name ?? null,
+    }))
+}
+
+export default function Leaderboard({ snapshot, readOnly }: { snapshot?: SeasonSnapshot; readOnly?: boolean } = {}) {
+  const [teams, setTeams] = useState<Team[]>(snapshot?.teams ?? [])
+  const [rounds, setRounds] = useState<RoundWithMatches[]>(
+    snapshot ? assembleRounds(snapshot.rounds, snapshot.matches, snapshot.hole_scores, snapshot.courses) : []
+  )
+  const [loading, setLoading] = useState(!snapshot)
 
   async function fetchAll() {
     const timeout = new Promise<null>(res => setTimeout(() => res(null), 5000))
@@ -27,29 +51,13 @@ export default function Leaderboard() {
     if (!result) { setLoading(false); return }
     const [teamsRes, roundsRes, matchesRes, scoresRes, coursesRes] = result
 
-    const teamsData: Team[] = teamsRes.data ?? []
-    const roundsData: Round[] = roundsRes.data ?? []
-    const matchesData: Match[] = matchesRes.data ?? []
-    const scoresData: HoleScore[] = scoresRes.data ?? []
-    const coursesData: { id: string; name: string; round_id: string }[] = coursesRes.data ?? []
-
-    const matchesWithScores: MatchWithScores[] = matchesData.map(m => ({
-      ...m,
-      hole_scores: scoresData.filter(s => s.match_id === m.id),
-    }))
-
-    const roundsWithMatches: RoundWithMatches[] = roundsData.map(r => ({
-      ...r,
-      matches: matchesWithScores.filter(m => m.round_id === r.id),
-      courseName: coursesData.find(c => c.round_id === r.id)?.name ?? null,
-    }))
-
-    setTeams(teamsData)
-    setRounds(roundsWithMatches)
+    setTeams(teamsRes.data ?? [])
+    setRounds(assembleRounds(roundsRes.data ?? [], matchesRes.data ?? [], scoresRes.data ?? [], coursesRes.data ?? []))
     setLoading(false)
   }
 
   useEffect(() => {
+    if (snapshot) return // frozen archive — no fetch
     fetchAll()
 
     const channel = supabase
@@ -60,7 +68,7 @@ export default function Leaderboard() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  }, [snapshot])
 
   // Calculate overall RGA points per team (complete = finalized, in_progress = live tentative)
   const teamPoints: Record<string, number> = {}
@@ -173,13 +181,13 @@ export default function Leaderboard() {
 
       {/* Rounds */}
       {rounds.map(round => (
-        <RoundSection key={round.id} round={round} team1={team1} team2={team2} />
+        <RoundSection key={round.id} round={round} team1={team1} team2={team2} readOnly={readOnly} />
       ))}
     </div>
   )
 }
 
-function RoundSection({ round, team1, team2 }: { round: RoundWithMatches; team1?: Team; team2?: Team }) {
+function RoundSection({ round, team1, team2, readOnly }: { round: RoundWithMatches; team1?: Team; team2?: Team; readOnly?: boolean }) {
   const hasMatches = round.matches.length > 0
   const roundPts1 = round.matches.reduce((sum, m) => sum + (m.status === 'complete' ? Number(m.rga_points_team1) : 0), 0)
   const roundPts2 = round.matches.reduce((sum, m) => sum + (m.status === 'complete' ? Number(m.rga_points_team2) : 0), 0)
@@ -210,7 +218,7 @@ function RoundSection({ round, team1, team2 }: { round: RoundWithMatches; team1?
       ) : (
         <div className="space-y-3">
           {round.matches.map(match => (
-            <MatchCard key={match.id} match={match} round={round} team1={team1} team2={team2} />
+            <MatchCard key={match.id} match={match} round={round} team1={team1} team2={team2} readOnly={readOnly} />
           ))}
         </div>
       )}
@@ -218,11 +226,12 @@ function RoundSection({ round, team1, team2 }: { round: RoundWithMatches; team1?
   )
 }
 
-function MatchCard({ match, round, team1, team2 }: {
+function MatchCard({ match, round, team1, team2, readOnly }: {
   match: MatchWithScores
   round: Round
   team1?: Team
   team2?: Team
+  readOnly?: boolean
 }) {
   const status = calcMatchPlayStatus(match.hole_scores, round.holes)
   const isComplete = match.status === 'complete'
@@ -334,13 +343,15 @@ function MatchCard({ match, round, team1, team2 }: {
         )}
       </div>
 
-      {/* Score entry button */}
-      <Link
-        href={`/score/${match.id}`}
-        className="flex items-center justify-center gap-1 py-2.5 bg-[#f5f2eb] hover:bg-[#ede8dc] transition-colors border-t border-gray-100 text-sm font-medium text-[#1e3a8a]"
-      >
-        {match.status === 'pending' ? '▶ Start & Enter Scores' : match.status === 'in_progress' ? '✏️ Update Scores' : '📋 View Scorecard'}
-      </Link>
+      {/* Score entry button (hidden in the frozen archive view) */}
+      {!readOnly && (
+        <Link
+          href={`/score/${match.id}`}
+          className="flex items-center justify-center gap-1 py-2.5 bg-[#f5f2eb] hover:bg-[#ede8dc] transition-colors border-t border-gray-100 text-sm font-medium text-[#1e3a8a]"
+        >
+          {match.status === 'pending' ? '▶ Start & Enter Scores' : match.status === 'in_progress' ? '✏️ Update Scores' : '📋 View Scorecard'}
+        </Link>
+      )}
     </div>
   )
 }

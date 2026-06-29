@@ -3,11 +3,10 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { calcMatchPlayStatus } from '@/lib/matchplay'
-import { effectiveRatings, liveProbs, displayLine, moneyline, pinnedShare, cupProbs, type CupProbs } from '@/lib/odds'
+import { effectiveRatings, liveProbs, displayLine, moneyline, pinnedShare } from '@/lib/odds'
+import { computeCup, type MatchWithScores, type RoundWithMatches } from '@/lib/cup'
+import CupMovement from './CupMovement'
 import type { Round, Match, HoleScore, Team } from '@/types/database'
-
-type MatchWithScores = Match & { hole_scores: HoleScore[] }
-type RoundWithMatches = Round & { matches: MatchWithScores[] }
 
 // Static prop bets — no live movement, just a fixed board. A prop is either a
 // simple list of outcomes (label + American odds) or a Yes/No table (per-row
@@ -86,39 +85,6 @@ function names(arr: string[]): string {
   return arr.join(' & ')
 }
 
-// ESPN-style single win-probability line: 50% centered on the x-axis. Above the
-// midline = Gray favored (gray line + gray shading); below = Navy favored (navy).
-// `v` is Gray's share of the win (0–100, 50 = even), one point per scored hole.
-function CupChart({ v, grayColor, navyColor }: { v: number[]; grayColor: string; navyColor: string }) {
-  const W = 400, H = 180, P = 8
-  const dev = Math.max(0, ...v.map(x => Math.abs(x - 50)))
-  const D = Math.min(50, Math.max(dev + 6, 12)) // symmetric half-span around 50
-  const lo = 50 - D, hi = 50 + D
-  const count = v.length
-  const xAt = (i: number) => (count <= 1 ? W - P : P + (i / (count - 1)) * (W - 2 * P))
-  const y = (val: number) => P + (1 - (val - lo) / (hi - lo)) * (H - 2 * P)
-  const midY = y(50)
-  const pts = count === 1 ? [{ x: P, v: v[0] }, { x: W - P, v: v[0] }] : v.map((val, i) => ({ x: xAt(i), v: val }))
-  const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ')
-  const first = pts[0].x, last = pts[pts.length - 1].x
-  const areaPath = `${linePath} L ${last.toFixed(1)} ${midY.toFixed(1)} L ${first.toFixed(1)} ${midY.toFixed(1)} Z`
-  const curV = v[v.length - 1]
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ display: 'block' }}>
-      <defs>
-        <clipPath id="cupAbove"><rect x="0" y="0" width={W} height={midY} /></clipPath>
-        <clipPath id="cupBelow"><rect x="0" y={midY} width={W} height={H - midY} /></clipPath>
-      </defs>
-      <path d={areaPath} fill={grayColor} fillOpacity={0.22} clipPath="url(#cupAbove)" />
-      <path d={areaPath} fill={navyColor} fillOpacity={0.22} clipPath="url(#cupBelow)" />
-      <line x1={P} x2={W - P} y1={midY} y2={midY} stroke="#cbd5e1" strokeWidth={1} />
-      <path d={linePath} fill="none" stroke={grayColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" clipPath="url(#cupAbove)" />
-      <path d={linePath} fill="none" stroke={navyColor} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" clipPath="url(#cupBelow)" />
-      <circle cx={last} cy={y(curV)} r={3.5} fill={curV >= 50 ? grayColor : navyColor} />
-    </svg>
-  )
-}
-
 export default function Odds() {
   const [teams, setTeams] = useState<Team[]>([])
   const [rounds, setRounds] = useState<RoundWithMatches[]>([])
@@ -164,71 +130,7 @@ export default function Odds() {
 
   const colorFor = (id: string | null) => (id && teams.find(t => t.id === id)?.color) || '#9ca3af'
 
-  const gray = teams.find(t => t.name.toLowerCase().includes('gray')) ?? teams[0]
-  const navy = teams.find(t => t.name.toLowerCase().includes('navy')) ?? teams[1]
-
-  // Per-match Gray/Navy outcome probabilities, optionally as of a point in time.
-  const matchProbsAt = (cutoff: number | null) => {
-    const out: { pGray: number; pTie: number; pNavy: number }[] = []
-    for (const round of rounds) {
-      for (const m of round.matches) {
-        if (!m.team1_id || !m.team2_id) continue
-        if (!m.team1_player_names?.length || !m.team2_player_names?.length) continue
-        const holes = cutoff === null ? m.hole_scores : m.hole_scores.filter(h => Date.parse(h.created_at) <= cutoff)
-        const st = calcMatchPlayStatus(holes, round.holes)
-        const complete = st.isComplete || (cutoff === null && m.status === 'complete')
-        let p1: number, pt: number, p2: number
-        if (complete) {
-          const w = st.isComplete ? st.winner : m.result === 'team1_win' ? 'team1' : m.result === 'team2_win' ? 'team2' : 'halved'
-          p1 = w === 'team1' ? 1 : 0
-          p2 = w === 'team2' ? 1 : 0
-          pt = w === 'halved' ? 1 : 0
-        } else {
-          const { rA, rB } = effectiveRatings(m.team1_player_names, m.team2_player_names)
-          const lp = liveProbs(rA, rB, st.holesUp, st.holesRemaining, round.holes)
-          p1 = lp.pA; pt = lp.pTie; p2 = lp.pB
-        }
-        const t1Gray = m.team1_id === gray?.id
-        out.push(t1Gray ? { pGray: p1, pTie: pt, pNavy: p2 } : { pGray: p2, pTie: pt, pNavy: p1 })
-      }
-    }
-    // Every match is worth exactly 1 RGA point, and the full tournament is a fixed
-    // pool of points (sum of each round's points_available — 12 here). Points that
-    // aren't drafted/scheduled yet are still up for grabs, so model them as neutral
-    // coin-flips. Without this the Cup line treats only the *played* matches as the
-    // entire tournament — e.g. 2-0 looks like a clinched cup instead of a small lead.
-    const totalPoints = rounds.reduce((sum, r) => sum + (r.points_available ?? 0), 0)
-    for (let i = out.length; i < totalPoints; i++) {
-      out.push({ pGray: 0.5, pTie: 0, pNavy: 0.5 })
-    }
-    return out
-  }
-
-  // Anchor the opening Cup line to a pick'em (Gray -110 / Navy -110), then let it move.
-  const TARGET_GRAY = 0.5
-  const share = (c: CupProbs) => (c.pGray + c.pNavy > 0 ? c.pGray / (c.pGray + c.pNavy) : 0.5)
-  const bias = TARGET_GRAY - share(cupProbs(matchProbsAt(0)))
-  const cupPct = (c: CupProbs) => {
-    const sAdj = Math.min(0.999, Math.max(0.001, share(c) + bias))
-    const tie = Math.min(0.01, c.pTie)
-    const gp = Math.round(sAdj * (1 - tie) * 100)
-    const np = Math.round((1 - sAdj) * (1 - tie) * 100)
-    // s = Gray's draw-no-bet win share; feed it through moneyline() so the Cup
-    // line carries the same house vig as the per-match lines (favorite's minus is
-    // stronger than the underdog's plus). A tie retains the cup -> treated as a push.
-    return { g: gp, n: np, draw: 100 - gp - np, pG: sAdj * (1 - tie), pN: (1 - sAdj) * (1 - tie), s: sAdj }
-  }
-
-  const hasMatches = matchProbsAt(null).length > 0
-  const cupNow = cupPct(cupProbs(matchProbsAt(null)))
-
-  // History: opening + one point per scored hole (replayed in timestamp order).
-  const times = Array.from(
-    new Set(rounds.flatMap(r => r.matches.flatMap(m => m.hole_scores.map(h => Date.parse(h.created_at)))))
-  ).sort((a, b) => a - b)
-  const seriesPts = [0, ...times].map(t => cupPct(cupProbs(matchProbsAt(t))))
-  // Single line = Gray's share of the win (0–100, 50 = even).
-  const seriesV = seriesPts.map(p => (p.g + p.n > 0 ? (p.g / (p.g + p.n)) * 100 : 50))
+  const { gray, navy, hasMatches, cupNow, seriesV } = computeCup(teams, rounds)
 
   return (
     <>
@@ -337,22 +239,7 @@ export default function Odds() {
       )}
 
       {!loading && hasMatches && (
-        <div className="bg-[#091540] rounded-2xl shadow-sm px-4 py-4 mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#e8c96a]">Cup Winner — Live Movement</p>
-            <div className="flex items-center gap-3 text-sm font-semibold">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: gray?.color ?? '#9ca3af' }} />
-                <span className="text-[#e8c96a] tabular-nums">{moneyline(cupNow.s)}</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#7aa2ff' }} />
-                <span className="text-[#e8c96a] tabular-nums">{moneyline(1 - cupNow.s)}</span>
-              </span>
-            </div>
-          </div>
-          <CupChart v={seriesV} grayColor={gray?.color ?? '#9ca3af'} navyColor="#7aa2ff" />
-        </div>
+        <CupMovement grayColor={gray?.color ?? '#9ca3af'} cupS={cupNow.s} seriesV={seriesV} className="mt-6" />
       )}
 
       {!loading && PROPS.length > 0 && (

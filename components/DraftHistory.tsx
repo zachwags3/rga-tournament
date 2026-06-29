@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Team } from '@/types/database'
+import type { SeasonSnapshot } from '@/lib/history/season2026'
 
 // Same snake order as DraftBoard
 const SNAKE_ORDER = [
@@ -28,12 +29,13 @@ function pickLabel(teamIdx: number, slot: number): string {
 
 type Player = { id: string; name: string; team_id: string; pick_number: number; is_captain: boolean }
 
-export default function DraftHistory() {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [players, setPlayers] = useState<Player[]>([])
-  const [loading, setLoading] = useState(true)
+export default function DraftHistory({ snapshot }: { snapshot?: SeasonSnapshot } = {}) {
+  const [teams, setTeams] = useState<Team[]>(snapshot?.teams ?? [])
+  const [players, setPlayers] = useState<Player[]>((snapshot?.players as Player[]) ?? [])
+  const [loading, setLoading] = useState(!snapshot)
 
   useEffect(() => {
+    if (snapshot) return // frozen archive — no fetch
     async function load() {
       const [t, p] = await Promise.all([
         supabase.from('teams').select('*').order('created_at'),
@@ -44,7 +46,7 @@ export default function DraftHistory() {
       setLoading(false)
     }
     load()
-  }, [])
+  }, [snapshot])
 
   if (loading) return <div className="p-8 text-center text-[#2d5a3d]">Loading draft...</div>
   if (teams.length < 2) return null
