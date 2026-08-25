@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import type { Team, Player, Round, Match } from '@/types/database'
 import DraftBoard from '@/components/DraftBoard'
 import CourseAdmin from '@/components/CourseAdmin'
+import SeasonHistory2026 from '@/components/SeasonHistory2026'
 
 export default function AdminSetup() {
   const [teams, setTeams] = useState<Team[]>([])
@@ -13,7 +14,7 @@ export default function AdminSetup() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'draft' | 'pairings' | 'courses' | 'rounds'>('draft')
+  const [activeTab, setActiveTab] = useState<'draft' | 'pairings' | 'courses' | 'rounds' | '2026'>('draft')
 
   const fetchAll = useCallback(async () => {
     const timeout = new Promise<null>(res => setTimeout(() => res(null), 5000))
@@ -52,7 +53,7 @@ export default function AdminSetup() {
     <div className="max-w-lg mx-auto px-4 pb-12">
       {/* Tabs */}
       <div className="flex bg-white rounded-xl border border-gray-200 p-1 mb-6">
-        {(['draft', 'pairings', 'courses', 'rounds'] as const).map(tab => (
+        {(['draft', 'pairings', 'courses', 'rounds', '2026'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -75,6 +76,9 @@ export default function AdminSetup() {
 
       {/* COURSES TAB */}
       {activeTab === 'courses' && <CourseAdmin />}
+
+      {/* 2026 ARCHIVE TAB */}
+      {activeTab === '2026' && <SeasonHistory2026 />}
 
       {/* PAIRINGS TAB */}
       {activeTab === 'pairings' && (
