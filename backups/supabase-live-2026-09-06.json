@@ -1,0 +1,330 @@
+{
+ "teams": [],
+ "players": [],
+ "rounds": [
+  {
+   "id": "fd95712a-1314-4430-a5b4-4146734cd09e",
+   "name": "Sunday — 1v1 Singles",
+   "format": "singles",
+   "holes": 18,
+   "points_available": 6,
+   "sort_order": 3,
+   "status": "pending",
+   "created_at": "2026-05-25T03:05:12.56967+00:00"
+  },
+  {
+   "id": "c754ec26-6480-491c-9382-bb35d2951fe9",
+   "name": "Saturday AM — 2v2 Scramble",
+   "format": "scramble",
+   "holes": 18,
+   "points_available": 3,
+   "sort_order": 1,
+   "status": "pending",
+   "created_at": "2026-05-25T03:05:12.56967+00:00"
+  },
+  {
+   "id": "019b361b-70c1-4545-b61b-cbb4b259d0c1",
+   "name": "Saturday PM — Shamble",
+   "format": "shamble",
+   "holes": 9,
+   "points_available": 3,
+   "sort_order": 2,
+   "status": "pending",
+   "created_at": "2026-05-25T03:05:12.56967+00:00"
+  }
+ ],
+ "matches": [],
+ "hole_scores": [],
+ "courses": [
+  {
+   "id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "name": "William J. Devine",
+   "round_id": "fd95712a-1314-4430-a5b4-4146734cd09e",
+   "created_at": "2026-05-25T05:56:06.114411+00:00"
+  },
+  {
+   "id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "name": "Newton Commonwealth",
+   "round_id": "c754ec26-6480-491c-9382-bb35d2951fe9",
+   "created_at": "2026-06-17T04:14:52.452585+00:00"
+  },
+  {
+   "id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "name": "Robert T. Lynch Back",
+   "round_id": "019b361b-70c1-4545-b61b-cbb4b259d0c1",
+   "created_at": "2026-06-27T20:00:13.336455+00:00"
+  }
+ ],
+ "course_holes": [
+  {
+   "id": "82d993de-083c-4395-bf6f-6c386d03da08",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 1,
+   "par": 4
+  },
+  {
+   "id": "90a3155c-fadf-4563-9ab6-0ff3a6af777c",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 2,
+   "par": 4
+  },
+  {
+   "id": "1041dfa7-0ff5-4e56-869c-dbc7aaf0918d",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 3,
+   "par": 3
+  },
+  {
+   "id": "67900fc2-438f-4913-914d-41740f729b0b",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 4,
+   "par": 5
+  },
+  {
+   "id": "1496453a-f3b7-4dbc-98db-0df39e867241",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 5,
+   "par": 4
+  },
+  {
+   "id": "eb90cc0c-25b5-46a4-91ce-46c8586fc6d7",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 6,
+   "par": 4
+  },
+  {
+   "id": "41df63ae-e2b3-403f-a85f-7b06a1192b9b",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 7,
+   "par": 4
+  },
+  {
+   "id": "5cd4676e-8f29-4fc4-ab7a-105b3ff0b644",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 8,
+   "par": 4
+  },
+  {
+   "id": "7033b791-b28a-4364-8038-f5b3af08ba2d",
+   "course_id": "9e42cc84-97be-4709-a9a1-1b71cea512c4",
+   "hole_number": 9,
+   "par": 3
+  },
+  {
+   "id": "4a8b85ef-b949-4586-a995-a741d02ba13b",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 1,
+   "par": 4
+  },
+  {
+   "id": "b407c2ec-d51a-4153-af0d-7b1c9b279d43",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 2,
+   "par": 4
+  },
+  {
+   "id": "191b5a1e-cf11-4895-b41b-a02365075c70",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 3,
+   "par": 4
+  },
+  {
+   "id": "eadac741-4d98-4b2f-9f28-52178bfe1fae",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 4,
+   "par": 3
+  },
+  {
+   "id": "a76ae313-d06d-4cbc-9780-29a535ddc107",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 5,
+   "par": 4
+  },
+  {
+   "id": "860c74a5-83a6-4f4e-87a0-579f8a2da866",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 6,
+   "par": 4
+  },
+  {
+   "id": "df7e0f20-5823-4773-9596-00e88c44538f",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 7,
+   "par": 4
+  },
+  {
+   "id": "c968183f-1695-4b19-9e1e-d8b181890f74",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 8,
+   "par": 3
+  },
+  {
+   "id": "4afbf98b-c96f-4dad-9cd2-65d5618eca13",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 9,
+   "par": 4
+  },
+  {
+   "id": "1050cec0-62bb-4464-8ca2-85e61384138c",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 10,
+   "par": 4
+  },
+  {
+   "id": "528b720c-53d4-4a6c-b0a1-d43c09f3ad9b",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 11,
+   "par": 5
+  },
+  {
+   "id": "3a776896-d966-452b-8c38-10408b1b3d33",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 12,
+   "par": 4
+  },
+  {
+   "id": "8cc52315-fd3e-4402-be30-1c892adb6a89",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 13,
+   "par": 3
+  },
+  {
+   "id": "22040895-ce3c-42ba-96a2-f18c5f2712ee",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 14,
+   "par": 4
+  },
+  {
+   "id": "043f3bbe-e74b-44ec-b6fd-874f1d0216cd",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 15,
+   "par": 3
+  },
+  {
+   "id": "d5d386b8-69b1-4237-b7bb-1ba463aec098",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 16,
+   "par": 4
+  },
+  {
+   "id": "0b46f2fa-ffe7-4e6b-b223-decff4db7c7b",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 17,
+   "par": 4
+  },
+  {
+   "id": "7f0c0b05-838f-4e9c-8758-561e205c2a0a",
+   "course_id": "57795e94-875a-4eeb-8ce7-9af4e6ffed16",
+   "hole_number": 18,
+   "par": 5
+  },
+  {
+   "id": "877df002-5356-46ea-bb18-f5803be65e88",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 1,
+   "par": 4
+  },
+  {
+   "id": "03325af7-c25e-4995-8160-94f1a1ec755d",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 2,
+   "par": 5
+  },
+  {
+   "id": "05b3f549-dc74-4e8d-a313-3bc633c76319",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 3,
+   "par": 3
+  },
+  {
+   "id": "2b99cbac-64d2-4332-8356-c989ed34a991",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 4,
+   "par": 3
+  },
+  {
+   "id": "063d0173-9a42-46f2-899a-907310ad2c79",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 5,
+   "par": 5
+  },
+  {
+   "id": "471c563a-6ca9-4334-9424-dd05af9104ef",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 6,
+   "par": 4
+  },
+  {
+   "id": "d9161fa4-008d-4e72-a620-7d2430400010",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 7,
+   "par": 3
+  },
+  {
+   "id": "9e43457c-5f3c-424c-a8fa-a407dffa7d3f",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 8,
+   "par": 5
+  },
+  {
+   "id": "83a953ab-6f86-40c8-b29c-b143ae5894f4",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 9,
+   "par": 3
+  },
+  {
+   "id": "6b4cdfee-c906-4dec-9109-d4d0be2a2ae3",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 10,
+   "par": 4
+  },
+  {
+   "id": "9edff9d3-4ac8-4b14-9b6d-674e16f9a1fd",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 11,
+   "par": 4
+  },
+  {
+   "id": "8b6d7a17-93fe-4227-8aa1-de4e1aa28767",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 12,
+   "par": 3
+  },
+  {
+   "id": "66dab668-d2da-4f66-ad9f-e84fbbb973eb",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 13,
+   "par": 4
+  },
+  {
+   "id": "bf755ad1-d776-4ebd-ac13-4803ccc042a1",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 14,
+   "par": 4
+  },
+  {
+   "id": "fbd115f9-b9c0-4279-9e96-ef2b856dc3b2",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 15,
+   "par": 5
+  },
+  {
+   "id": "48783fc9-6ef2-4daf-9dfc-0b1a35872167",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 16,
+   "par": 3
+  },
+  {
+   "id": "35d572c5-4691-4c1b-bf98-abd616b4e649",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 17,
+   "par": 4
+  },
+  {
+   "id": "7fade519-bc32-4bd6-86a5-fe51a9ed3951",
+   "course_id": "fdbc60e5-e239-462f-936a-05cbf093a954",
+   "hole_number": 18,
+   "par": 4
+  }
+ ]
+}
