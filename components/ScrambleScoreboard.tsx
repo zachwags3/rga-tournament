@@ -54,8 +54,9 @@ export default function ScrambleScoreboard() {
 
   return (
     <div className="max-w-2xl mx-auto px-3 pb-12">
-      {/* Banner */}
-      <div className="bg-[#091540] rounded-2xl px-5 py-6 text-center shadow-sm">
+      {/* Scoreboard — banner and leaderboard joined as one unit */}
+      <div className="rounded-2xl overflow-hidden shadow-md ring-1 ring-[#091540]/10">
+      <div className="bg-[#091540] px-5 py-6 text-center">
         <p className="text-xl font-bold uppercase tracking-[0.16em] text-[#e8c96a] leading-tight">{SCRAMBLE.shortName}</p>
         <p className="text-white/75 text-[15px] leading-snug mt-3">{SCRAMBLE.fullName}</p>
         <p className="text-white/45 text-sm mt-2">{SCRAMBLE.presentedBy}</p>
@@ -64,18 +65,9 @@ export default function ScrambleScoreboard() {
         </p>
       </div>
 
-      {needsSetup && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mt-4">
-          <p className="text-amber-800 text-xs font-semibold">Scoring table not set up yet</p>
-          <p className="text-amber-700 text-[11px] mt-1">
-            Run <span className="font-mono">supabase/scramble.sql</span> in the Supabase SQL editor to enable score entry.
-          </p>
-        </div>
-      )}
-
-      {/* Leaderboard */}
-      <div className="bg-white rounded-2xl shadow-sm mt-4 overflow-hidden">
-        <div className="flex px-3 py-2 bg-gray-50 text-[10px] font-bold tracking-wider text-gray-500">
+      {/* Leaderboard, flush under the banner with a gold rule between */}
+      <div className="bg-white border-t-2 border-[#e8c96a]">
+        <div className="flex px-3 py-2 bg-gray-50 text-[10px] font-bold tracking-wider text-gray-500 border-b border-gray-100">
           <span className="w-8 shrink-0">POS</span>
           <span className="flex-1 min-w-0">TEAM</span>
           <span className="w-11 shrink-0 text-center">THRU</span>
@@ -109,6 +101,16 @@ export default function ScrambleScoreboard() {
           ))
         )}
       </div>
+      </div>
+
+      {needsSetup && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mt-4">
+          <p className="text-amber-800 text-xs font-semibold">Scoring table not set up yet</p>
+          <p className="text-amber-700 text-[11px] mt-1">
+            Run <span className="font-mono">supabase/scramble.sql</span> in the Supabase SQL editor to enable score entry.
+          </p>
+        </div>
+      )}
 
       {/* Tee groups → score entry */}
       <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50 mt-6 mb-2 px-1">
