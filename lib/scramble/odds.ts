@@ -1,6 +1,6 @@
 import { ratingFor } from '../players'
-import { TOTAL_HOLES, type ScrambleTeam } from './config'
-import type { LeaderRow } from './scoring'
+import { SCRAMBLE_TEAMS, TOTAL_HOLES, type ScrambleTeam } from './config'
+import { buildLeaderboard, type LeaderRow, type ScrambleScore } from './scoring'
 
 // --- Tunables ---------------------------------------------------------------
 const W_MAX = 0.32   // weight on the stronger partner (a weak partner drags a scramble)
@@ -74,4 +74,42 @@ export function winProbabilities(rows: LeaderRow[]): Map<string, number> {
   }
   if (total > 0) for (const [k, v] of out) out.set(k, v / total)
   return out
+}
+
+
+export type ProbSeries = {
+  holeAt: number[]                    // furthest hole completed by anyone at each point
+  series: Record<string, number[]>    // slug -> win % (0-100) over time
+}
+
+// Replay the round in the order scores were entered, recomputing every team's win
+// probability at each step. Drives the momentum chart.
+export function probabilitySeries(
+  rows: (ScrambleScore & { created_at: string })[]
+): ProbSeries {
+  const scored = rows
+    .filter(r => r.strokes != null && r.strokes > 0)
+    .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))
+
+  const series: Record<string, number[]> = {}
+  for (const t of SCRAMBLE_TEAMS) series[t.slug] = []
+  const holeAt: number[] = []
+
+  const snapshot = (soFar: ScrambleScore[]) => {
+    const p = winProbabilities(buildLeaderboard(soFar))
+    for (const t of SCRAMBLE_TEAMS) series[t.slug].push((p.get(t.slug) ?? 0) * 100)
+  }
+
+  snapshot([])          // opening line
+  holeAt.push(0)
+
+  const acc: ScrambleScore[] = []
+  let maxHole = 0
+  for (const r of scored) {
+    acc.push(r)
+    maxHole = Math.max(maxHole, r.hole_number)
+    snapshot(acc)
+    holeAt.push(maxHole)
+  }
+  return { holeAt, series }
 }
