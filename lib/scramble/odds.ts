@@ -10,7 +10,7 @@ const REF_RATING = 62   // pair rating that plays to BASE_TO_PAR
 const BASE_TO_PAR = 8   // expected 18-hole score-to-par at the reference rating
 const SLOPE = 0.18      // strokes better per rating point above the reference
 const HOLE_SD = 1.25    // per-hole scoring standard deviation for a 2-man scramble
-const FORM_WEIGHT = 6   // holes of live play needed before form counts ~50%
+const FORM_WEIGHT = 18  // damps how far a small early sample extrapolates
 // ---------------------------------------------------------------------------
 
 export function pairRating(team: ScrambleTeam): number {

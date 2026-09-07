@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import RefreshLogo from './RefreshLogo'
+import { HIDE_FEED_TAB, HIDE_STATS_TAB } from '@/lib/scramble/config'
 
 export default function NavHeader() {
   const pathname = usePathname()
@@ -47,6 +48,7 @@ export default function NavHeader() {
           >
             History
           </Link>
+          {!HIDE_FEED_TAB && (
           <Link
             href="/feed"
             className={`relative px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
@@ -61,6 +63,7 @@ export default function NavHeader() {
               </span>
             )}
           </Link>
+          )}
           <Link
             href="/odds"
             className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
@@ -69,6 +72,7 @@ export default function NavHeader() {
           >
             Odds
           </Link>
+          {!HIDE_STATS_TAB && (
           <Link
             href="/stats"
             className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
@@ -77,6 +81,7 @@ export default function NavHeader() {
           >
             Stats
           </Link>
+          )}
         </div>
 
         {/* Right side */}

@@ -69,9 +69,6 @@ export default function ScrambleOdds() {
               )
             })}
           </div>
-          <p className="text-[11px] text-[#091540]/40 mt-3 px-1">
-            Model estimate — pair strength from RGA ratings, updated live as holes are scored.
-          </p>
         </>
       )}
     </div>
