@@ -7,6 +7,11 @@ import { COURSE, COURSE_PAR, SCRAMBLE, teamName, teeGroups } from '@/lib/scrambl
 import { buildLeaderboard, fmtToPar, scoreMap, splits, type ScrambleScore } from '@/lib/scramble/scoring'
 import { Rings, golfMark } from './golfMarks'
 
+const FRONT = COURSE.filter(h => h.hole <= 9)
+const BACK = COURSE.filter(h => h.hole > 9)
+const OUT_PAR = FRONT.reduce((a, h) => a + h.par, 0)
+const IN_PAR = BACK.reduce((a, h) => a + h.par, 0)
+
 export default function ScrambleScoreboard() {
   const [scores, setScores] = useState<ScrambleScore[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,6 +35,21 @@ export default function ScrambleScoreboard() {
 
   const board = buildLeaderboard(scores)
   const map = scoreMap(scores)
+
+  const holeCell = (slug: string, h: (typeof COURSE)[number]) => {
+    const v = map.get(`${slug}:${h.hole}`)
+    const mark = golfMark(v != null ? v - h.par : null)
+    return (
+      <div
+        key={h.hole}
+        className="relative w-7 h-7 shrink-0 flex items-center justify-center text-[11px] font-semibold border-r border-gray-100"
+        style={{ color: mark?.color ?? '#d1d5db' }}
+      >
+        <Rings mark={mark} size={22} />
+        <span className="relative">{v ?? ''}</span>
+      </div>
+    )
+  }
   const anyStarted = board.some(r => r.started)
 
   return (
@@ -123,20 +143,26 @@ export default function ScrambleScoreboard() {
               <div className="min-w-max">
                 <div className="flex bg-[#091540]">
                   <div className="w-24 shrink-0 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/70 border-r border-white/10">Hole</div>
-                  {COURSE.map(h => (
+                  {FRONT.map(h => (
                     <div key={h.hole} className="w-7 shrink-0 py-1.5 text-center text-[10px] font-bold text-white/80 border-r border-white/10">{h.hole}</div>
                   ))}
-                  {['Out', 'In', 'Tot'].map(l => (
-                    <div key={l} className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a]">{l}</div>
+                  <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a] border-r border-white/10">Out</div>
+                  {BACK.map(h => (
+                    <div key={h.hole} className="w-7 shrink-0 py-1.5 text-center text-[10px] font-bold text-white/80 border-r border-white/10">{h.hole}</div>
                   ))}
+                  <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a] border-r border-white/10">In</div>
+                  <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a]">Tot</div>
                 </div>
                 <div className="flex border-t border-gray-100 bg-gray-50">
                   <div className="w-24 shrink-0 px-2 py-1.5 text-[11px] font-semibold text-gray-500 border-r border-gray-200">Par</div>
-                  {COURSE.map(h => (
+                  {FRONT.map(h => (
                     <div key={h.hole} className="w-7 h-7 shrink-0 flex items-center justify-center text-[11px] text-gray-500 border-r border-gray-100">{h.par}</div>
                   ))}
-                  <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600">35</div>
-                  <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600">35</div>
+                  <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600 border-r border-gray-200">{OUT_PAR}</div>
+                  {BACK.map(h => (
+                    <div key={h.hole} className="w-7 h-7 shrink-0 flex items-center justify-center text-[11px] text-gray-500 border-r border-gray-100">{h.par}</div>
+                  ))}
+                  <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600 border-r border-gray-200">{IN_PAR}</div>
                   <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600">{COURSE_PAR}</div>
                 </div>
                 {board.map(r => {
@@ -146,22 +172,10 @@ export default function ScrambleScoreboard() {
                       <div className="w-24 shrink-0 px-2 py-1.5 text-[11px] font-semibold text-[#091540] border-r border-gray-200 truncate">
                         {teamName(r.team)}
                       </div>
-                      {COURSE.map(h => {
-                        const v = map.get(`${r.team.slug}:${h.hole}`)
-                        const mark = golfMark(v != null ? v - h.par : null)
-                        return (
-                          <div
-                            key={h.hole}
-                            className="relative w-7 h-7 shrink-0 flex items-center justify-center text-[11px] font-semibold border-r border-gray-100"
-                            style={{ color: mark?.color ?? '#d1d5db' }}
-                          >
-                            <Rings mark={mark} size={22} />
-                            <span className="relative">{v ?? ''}</span>
-                          </div>
-                        )
-                      })}
-                      <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50">{s.out || '–'}</div>
-                      <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50">{s.in || '–'}</div>
+                      {FRONT.map(h => holeCell(r.team.slug, h))}
+                      <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50 border-r border-gray-200">{s.out || '–'}</div>
+                      {BACK.map(h => holeCell(r.team.slug, h))}
+                      <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50 border-r border-gray-200">{s.in || '–'}</div>
                       <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50">{s.total || '–'}</div>
                     </div>
                   )
