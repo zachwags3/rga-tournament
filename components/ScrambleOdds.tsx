@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { toAmerican } from '@/lib/odds'
 import { SCRAMBLE, teamName } from '@/lib/scramble/config'
 import { buildLeaderboard, fmtToPar, type ScrambleScore } from '@/lib/scramble/scoring'
-import { probabilitySeries, projections, winProbabilities } from '@/lib/scramble/odds'
+import { probabilitySeries, winProbabilities } from '@/lib/scramble/odds'
 import ScrambleMomentum from './ScrambleMomentum'
 
 // Cap longshots at +5000 so a mathematically-buried team doesn't print an
@@ -38,7 +38,6 @@ export default function ScrambleOdds() {
   const board = useMemo(() => buildLeaderboard(rows), [rows])
   const probs = useMemo(() => winProbabilities(board), [board])
   const series = useMemo(() => probabilitySeries(rows), [rows])
-  const proj = useMemo(() => new Map(projections(board).map(p => [p.slug, p])), [board])
 
   const ranked = [...board].sort((a, b) => (probs.get(b.team.slug) ?? 0) - (probs.get(a.team.slug) ?? 0))
   const anyStarted = board.some(r => r.started)
@@ -59,18 +58,17 @@ export default function ScrambleOdds() {
             </div>
             {ranked.map(r => {
               const p = probs.get(r.team.slug) ?? 0
-              const pr = proj.get(r.team.slug)
               return (
                 <div key={r.team.slug} className="flex items-center justify-between py-1.5">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: r.team.color }} />
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-white truncate">{teamName(r.team)}</p>
-                      <p className="text-[11px] text-white/40">
-                        {anyStarted && r.started
-                          ? `${fmtToPar(r.toPar)} thru ${r.thru}`
-                          : `proj ${fmtToPar(Math.round(pr?.mean ?? 0))}`}
-                      </p>
+                      {anyStarted && r.started && (
+                        <p className="text-[11px] text-white/40">
+                          {fmtToPar(r.toPar)} thru {r.thru}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="text-right shrink-0 ml-3">
