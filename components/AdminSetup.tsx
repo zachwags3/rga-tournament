@@ -6,6 +6,12 @@ import type { Team, Player, Round, Match } from '@/types/database'
 import DraftBoard from '@/components/DraftBoard'
 import CourseAdmin from '@/components/CourseAdmin'
 import SeasonHistory2026 from '@/components/SeasonHistory2026'
+import ScrambleAdmin from '@/components/ScrambleAdmin'
+
+const TAB_LABELS: Record<string, string> = {
+  draft: 'Draft', pairings: 'Pairings', courses: 'Courses',
+  rounds: 'Rounds', '2026': '2026', scramble: 'Kickoff',
+}
 
 export default function AdminSetup() {
   const [teams, setTeams] = useState<Team[]>([])
@@ -14,7 +20,7 @@ export default function AdminSetup() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'draft' | 'pairings' | 'courses' | 'rounds' | '2026'>('draft')
+  const [activeTab, setActiveTab] = useState<'draft' | 'pairings' | 'courses' | 'rounds' | '2026' | 'scramble'>('draft')
 
   const fetchAll = useCallback(async () => {
     const timeout = new Promise<null>(res => setTimeout(() => res(null), 5000))
@@ -52,16 +58,19 @@ export default function AdminSetup() {
   return (
     <div className="max-w-lg mx-auto px-4 pb-12">
       {/* Tabs */}
-      <div className="flex bg-white rounded-xl border border-gray-200 p-1 mb-6">
-        {(['draft', 'pairings', 'courses', 'rounds', '2026'] as const).map(tab => (
+      <div
+        className="flex bg-white rounded-xl border border-gray-200 p-1 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {(['draft', 'pairings', 'courses', 'rounds', '2026', 'scramble'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors capitalize ${
+            className={`flex-1 px-2 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
               activeTab === tab ? 'bg-[#2d5a3d] text-white' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {TAB_LABELS[tab]}
           </button>
         ))}
       </div>
@@ -79,6 +88,9 @@ export default function AdminSetup() {
 
       {/* 2026 ARCHIVE TAB */}
       {activeTab === '2026' && <SeasonHistory2026 />}
+
+      {/* KICKOFF CLASSIC TAB — edit/delete/reset scramble scores */}
+      {activeTab === 'scramble' && <ScrambleAdmin />}
 
       {/* PAIRINGS TAB */}
       {activeTab === 'pairings' && (
