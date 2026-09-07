@@ -55,7 +55,7 @@ export default function ScrambleScoreboard() {
   return (
     <div className="max-w-2xl mx-auto px-3 pb-12">
       {/* Scoreboard — banner and leaderboard joined as one unit */}
-      <div className="rounded-2xl overflow-hidden shadow-md ring-1 ring-[#091540]/10">
+      <div className="rounded-2xl overflow-hidden shadow-md border-[3px] border-[#e8c96a]">
       <div className="bg-[#091540] px-5 py-6 text-center">
         <p className="text-xl font-bold uppercase tracking-[0.16em] text-[#e8c96a] leading-tight">{SCRAMBLE.shortName}</p>
         <p className="text-white/75 text-[15px] leading-snug mt-3">{SCRAMBLE.fullName}</p>
