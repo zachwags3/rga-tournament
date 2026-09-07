@@ -41,6 +41,14 @@ export default function NavHeader() {
             Scoreboard
           </Link>
           <Link
+            href="/odds"
+            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+              pathname === '/odds' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Odds
+          </Link>
+          <Link
             href="/history"
             className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
               pathname === '/history' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
@@ -64,14 +72,6 @@ export default function NavHeader() {
             )}
           </Link>
           )}
-          <Link
-            href="/odds"
-            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
-              pathname === '/odds' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            Odds
-          </Link>
           {!HIDE_STATS_TAB && (
           <Link
             href="/stats"
