@@ -112,30 +112,6 @@ export default function ScrambleScoreboard() {
         </div>
       )}
 
-      {/* Tee groups → score entry */}
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50 mt-6 mb-2 px-1">
-        Tee groups · tap to enter scores
-      </p>
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        {teeGroups().map(g => (
-          <div key={g.time}>
-            <div className="px-3 py-2 bg-gray-50 text-xs font-semibold text-[#091540] border-t border-gray-100 first:border-t-0">
-              {g.time} AM
-            </div>
-            {g.teams.map(t => (
-              <Link
-                key={t.slug}
-                href={`/scramble/${t.slug}`}
-                className="flex items-center justify-between px-3 py-3.5 border-t border-gray-50 active:bg-gray-50"
-              >
-                <span className="text-sm font-semibold text-[#091540]">{teamName(t)}</span>
-                <span className="text-xs font-medium text-[#1e3a8a]">Enter scores ›</span>
-              </Link>
-            ))}
-          </div>
-        ))}
-      </div>
-
       {/* Full scorecard */}
       {anyStarted && (
         <>
@@ -187,6 +163,30 @@ export default function ScrambleScoreboard() {
           </div>
         </>
       )}
+
+      {/* Tee groups → score entry */}
+      <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50 mt-6 mb-2 px-1">
+        Tee groups · tap to enter scores
+      </p>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {teeGroups().map(g => (
+          <div key={g.time}>
+            <div className="px-3 py-2 bg-gray-50 text-xs font-semibold text-[#091540] border-t border-gray-100 first:border-t-0">
+              {g.time} AM
+            </div>
+            {g.teams.map(t => (
+              <Link
+                key={t.slug}
+                href={`/scramble/${t.slug}`}
+                className="flex items-center justify-between px-3 py-3.5 border-t border-gray-50 active:bg-gray-50"
+              >
+                <span className="text-sm font-semibold text-[#091540]">{teamName(t)}</span>
+                <span className="text-xs font-medium text-[#1e3a8a]">Enter scores ›</span>
+              </Link>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
