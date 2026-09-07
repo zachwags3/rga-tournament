@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { COURSE, COURSE_PAR, SCRAMBLE, teamName, teeGroups } from '@/lib/scramble/config'
 import { buildLeaderboard, fmtToPar, scoreMap, splits, type ScrambleScore } from '@/lib/scramble/scoring'
@@ -45,12 +44,11 @@ export default function ScrambleScoreboard() {
   return (
     <div className="max-w-2xl mx-auto px-3 pb-12">
       {/* Banner */}
-      <div className="bg-[#091540] rounded-2xl px-4 py-5 text-center shadow-sm">
-        <Image src="/rga-logo.png" alt="RGA" width={52} height={52} className="mx-auto mb-3 drop-shadow-md" />
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#e8c96a]">{SCRAMBLE.shortName}</p>
-        <p className="text-white/60 text-[11px] leading-relaxed mt-2 max-w-xs mx-auto">{SCRAMBLE.fullName}</p>
-        <p className="text-white/35 text-[10px] mt-1">{SCRAMBLE.presentedBy}</p>
-        <p className="text-white/45 text-[11px] mt-3">
+      <div className="bg-[#091540] rounded-2xl px-5 py-6 text-center shadow-sm">
+        <p className="text-xl font-bold uppercase tracking-[0.16em] text-[#e8c96a] leading-tight">{SCRAMBLE.shortName}</p>
+        <p className="text-white/75 text-[15px] leading-snug mt-3">{SCRAMBLE.fullName}</p>
+        <p className="text-white/45 text-sm mt-2">{SCRAMBLE.presentedBy}</p>
+        <p className="text-white/60 text-sm mt-4">
           {SCRAMBLE.dateLabel} · {SCRAMBLE.formatLabel} · par {COURSE_PAR}
         </p>
       </div>
