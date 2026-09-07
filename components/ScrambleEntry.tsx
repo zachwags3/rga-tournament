@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { COURSE, COURSE_PAR, teamBySlug, teamName } from '@/lib/scramble/config'
 import { fmtToPar } from '@/lib/scramble/scoring'
+import { Rings, golfMark } from './golfMarks'
 
 export default function ScrambleEntry({ slug }: { slug: string }) {
   const team = teamBySlug(slug)
@@ -79,14 +80,7 @@ export default function ScrambleEntry({ slug }: { slug: string }) {
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           {COURSE.map(h => {
             const v = strokes[h.hole]
-            const diff = v != null ? v - h.par : null
-            const tint =
-              diff === null ? undefined
-              : diff <= -2 ? '#fde68a'
-              : diff === -1 ? '#bbf7d0'
-              : diff === 0 ? '#f3f4f6'
-              : diff === 1 ? '#fecaca'
-              : '#fca5a5'
+            const mark = golfMark(v != null ? v - h.par : null)
             return (
               <div key={h.hole} className="flex items-center gap-3 px-3 py-2.5 border-t border-gray-50 first:border-t-0">
                 <span className="w-7 shrink-0 text-sm font-bold text-[#091540] tabular-nums">{h.hole}</span>
@@ -95,17 +89,20 @@ export default function ScrambleEntry({ slug }: { slug: string }) {
                 </span>
                 <div className="flex-1" />
                 {savingHole === h.hole && <span className="text-[10px] text-gray-400">saving…</span>}
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  min={1}
-                  defaultValue={v ?? ''}
-                  onBlur={e => save(h.hole, e.target.value)}
-                  className="w-16 h-11 rounded-xl border border-gray-200 text-center text-lg font-bold text-[#091540] focus:outline-none focus:border-[#1e3a8a]"
-                  style={tint ? { backgroundColor: tint } : undefined}
-                  aria-label={`Strokes for hole ${h.hole}`}
-                />
+                <div className="relative w-16 h-11 shrink-0">
+                  <Rings mark={mark} size={32} />
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    min={1}
+                    defaultValue={v ?? ''}
+                    onBlur={e => save(h.hole, e.target.value)}
+                    className="absolute inset-0 w-full h-full rounded-xl border border-gray-200 bg-transparent text-center text-lg font-bold focus:outline-none focus:border-[#1e3a8a]"
+                    style={{ color: mark?.color ?? '#091540' }}
+                    aria-label={`Strokes for hole ${h.hole}`}
+                  />
+                </div>
               </div>
             )
           })}

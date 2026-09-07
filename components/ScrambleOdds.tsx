@@ -73,9 +73,9 @@ export default function ScrambleOdds() {
                   </div>
                   <div className="text-right shrink-0 ml-3">
                     <p className="text-base font-bold text-[#e8c96a] tabular-nums leading-none">
-                      {Math.round(p * 100)}%
+                      {price(p)}
                     </p>
-                    <p className="text-[11px] text-white/40 tabular-nums mt-0.5">{price(p)}</p>
+                    <p className="text-[11px] text-white/40 tabular-nums mt-0.5">{Math.round(p * 100)}%</p>
                   </div>
                 </div>
               )

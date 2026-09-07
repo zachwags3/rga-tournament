@@ -5,16 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { COURSE, COURSE_PAR, SCRAMBLE, teamName, teeGroups } from '@/lib/scramble/config'
 import { buildLeaderboard, fmtToPar, scoreMap, splits, type ScrambleScore } from '@/lib/scramble/scoring'
-
-// Stroke colour vs par — matches the 2026 archive scorecard.
-function strokeStyle(diff: number | null): React.CSSProperties {
-  if (diff === null) return { backgroundColor: '#ffffff', color: '#d1d5db' }
-  if (diff <= -2) return { backgroundColor: '#fde68a', color: '#713f12' }
-  if (diff === -1) return { backgroundColor: '#bbf7d0', color: '#14532d' }
-  if (diff === 0) return { backgroundColor: '#f3f4f6', color: '#374151' }
-  if (diff === 1) return { backgroundColor: '#fecaca', color: '#7f1d1d' }
-  return { backgroundColor: '#fca5a5', color: '#7f1d1d' }
-}
+import { Rings, golfMark } from './golfMarks'
 
 export default function ScrambleScoreboard() {
   const [scores, setScores] = useState<ScrambleScore[]>([])
@@ -157,13 +148,15 @@ export default function ScrambleScoreboard() {
                       </div>
                       {COURSE.map(h => {
                         const v = map.get(`${r.team.slug}:${h.hole}`)
+                        const mark = golfMark(v != null ? v - h.par : null)
                         return (
                           <div
                             key={h.hole}
-                            className="w-7 h-7 shrink-0 flex items-center justify-center text-[11px] font-semibold border-r border-gray-100"
-                            style={strokeStyle(v != null ? v - h.par : null)}
+                            className="relative w-7 h-7 shrink-0 flex items-center justify-center text-[11px] font-semibold border-r border-gray-100"
+                            style={{ color: mark?.color ?? '#d1d5db' }}
                           >
-                            {v ?? ''}
+                            <Rings mark={mark} size={22} />
+                            <span className="relative">{v ?? ''}</span>
                           </div>
                         )
                       })}
