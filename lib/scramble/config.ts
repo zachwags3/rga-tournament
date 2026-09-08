@@ -7,7 +7,7 @@ export const SCRAMBLE_ENABLED = true
 
 // Tabs parked for the Kickoff Classic weekend — the pages still work if you visit
 // them directly, they're just hidden from the nav. Flip to false to bring them back.
-export const HIDE_FEED_TAB = true
+export const HIDE_FEED_TAB = false
 export const HIDE_STATS_TAB = true
 
 export const SCRAMBLE = {

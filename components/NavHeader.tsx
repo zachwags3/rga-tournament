@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import RefreshLogo from './RefreshLogo'
-import { HIDE_FEED_TAB, HIDE_STATS_TAB } from '@/lib/scramble/config'
+import { HIDE_FEED_TAB, HIDE_STATS_TAB, SCRAMBLE_ENABLED, SCRAMBLE_TEAMS, TOTAL_HOLES } from '@/lib/scramble/config'
 
 export default function NavHeader() {
   const pathname = usePathname()
@@ -13,6 +13,18 @@ export default function NavHeader() {
 
   useEffect(() => {
     async function check() {
+      if (SCRAMBLE_ENABLED) {
+        // Live once any score is in and before every team has signed for 18.
+        const { data } = await supabase.from('scramble_scores').select('team_slug')
+        const rows = data ?? []
+        const holesByTeam: Record<string, number> = {}
+        for (const r of rows) holesByTeam[r.team_slug] = (holesByTeam[r.team_slug] ?? 0) + 1
+        const slugs = Object.keys(holesByTeam)
+        const allDone =
+          slugs.length >= SCRAMBLE_TEAMS.length && slugs.every(t => holesByTeam[t] >= TOTAL_HOLES)
+        setAnyInProgress(rows.length > 0 && !allDone)
+        return
+      }
       const { data } = await supabase.from('matches').select('status')
       setAnyInProgress((data ?? []).some(m => m.status === 'in_progress'))
     }
@@ -20,6 +32,7 @@ export default function NavHeader() {
     const channel = supabase
       .channel('nav-match-status')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, check)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scramble_scores' }, check)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [])
@@ -48,6 +61,22 @@ export default function NavHeader() {
           >
             Odds
           </Link>
+          {!HIDE_FEED_TAB && (
+            <Link
+              href="/feed"
+              className={`relative px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+                pathname === '/feed' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Feed
+              {anyInProgress && (
+                <span className="absolute top-[-1px] right-[-1px] flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                </span>
+              )}
+            </Link>
+          )}
           <Link
             href="/history"
             className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
@@ -56,31 +85,15 @@ export default function NavHeader() {
           >
             History
           </Link>
-          {!HIDE_FEED_TAB && (
-          <Link
-            href="/feed"
-            className={`relative px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
-              pathname === '/feed' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            Feed
-            {anyInProgress && (
-              <span className="absolute top-[-1px] right-[-1px] flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-              </span>
-            )}
-          </Link>
-          )}
           {!HIDE_STATS_TAB && (
-          <Link
-            href="/stats"
-            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
-              pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            Stats
-          </Link>
+            <Link
+              href="/stats"
+              className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors text-center leading-tight whitespace-nowrap ${
+                pathname === '/stats' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Stats
+            </Link>
           )}
         </div>
 
