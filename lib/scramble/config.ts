@@ -19,6 +19,11 @@ export const SCRAMBLE = {
   courseLabel: 'Newton Commonwealth',
 } as const
 
+// First tee: 7:30 AM Eastern on Sunday 13 Sept 2026. Written with an explicit
+// offset (EDT, UTC-4) so it means the same instant regardless of the viewer's
+// timezone. The countdown hides itself for good once this passes.
+export const TEE_OFF = '2026-09-13T07:30:00-04:00'
+
 export type ScrambleTeam = {
   slug: string
   captain: string

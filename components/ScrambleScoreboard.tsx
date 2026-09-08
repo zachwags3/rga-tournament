@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { COURSE, COURSE_PAR, SCRAMBLE, teamName, teeGroups } from '@/lib/scramble/config'
 import { buildLeaderboard, fmtToPar, scoreMap, splits, type ScrambleScore } from '@/lib/scramble/scoring'
+import ScrambleCountdown from './ScrambleCountdown'
 import { Rings, golfMark } from './golfMarks'
 
 const FRONT = COURSE.filter(h => h.hole <= 9)
@@ -54,6 +55,8 @@ export default function ScrambleScoreboard() {
 
   return (
     <div className="max-w-2xl mx-auto px-3 pb-12">
+      <ScrambleCountdown />
+
       {/* Scoreboard — banner and leaderboard joined as one unit */}
       <div className="rounded-2xl overflow-hidden shadow-md border-[3px] border-[#e8c96a]">
       <div className="bg-[#091540] px-5 py-6 text-center">
