@@ -12,11 +12,11 @@ export const HIDE_STATS_TAB = true
 
 export const SCRAMBLE = {
   shortName: 'Kickoff Classic',
-  fullName: 'Inaugural Robert T. Lynch Sunday Sunrise Scramble Exhibition Invitational',
+  fullName: 'Inaugural Newton Commonwealth Sunday Sunrise Scramble Exhibition Invitational',
   presentedBy: 'presented by The RGA',
   dateLabel: 'Sun Sept 13',
   formatLabel: '2-man scramble',
-  courseLabel: 'Robert T. Lynch',
+  courseLabel: 'Newton Commonwealth',
 } as const
 
 export type ScrambleTeam = {
@@ -51,27 +51,27 @@ export function teeGroups(): { time: string; teams: ScrambleTeam[] }[] {
   return out
 }
 
-// Robert T. Lynch Municipal — Blue tees, 6211 yds, 121/70.4, par 70.
+// Newton Commonwealth — Blue tees, 5354 yds, 119/67, par 70.
 export type CourseHole = { hole: number; par: number; hcp: number; yards: number }
 export const COURSE: CourseHole[] = [
-  { hole: 1,  par: 4, hcp: 12, yards: 372 },
-  { hole: 2,  par: 4, hcp: 10, yards: 341 },
-  { hole: 3,  par: 3, hcp: 16, yards: 175 },
-  { hole: 4,  par: 4, hcp: 14, yards: 321 },
-  { hole: 5,  par: 3, hcp: 18, yards: 208 },
-  { hole: 6,  par: 5, hcp: 2,  yards: 521 },
-  { hole: 7,  par: 4, hcp: 8,  yards: 347 },
-  { hole: 8,  par: 4, hcp: 4,  yards: 401 },
-  { hole: 9,  par: 4, hcp: 6,  yards: 395 },
-  { hole: 10, par: 4, hcp: 11, yards: 338 },
-  { hole: 11, par: 4, hcp: 13, yards: 301 },
-  { hole: 12, par: 3, hcp: 17, yards: 132 },
-  { hole: 13, par: 4, hcp: 5,  yards: 400 },
-  { hole: 14, par: 4, hcp: 1,  yards: 426 },
-  { hole: 15, par: 5, hcp: 7,  yards: 547 },
-  { hole: 16, par: 4, hcp: 9,  yards: 387 },
-  { hole: 17, par: 3, hcp: 15, yards: 179 },
-  { hole: 18, par: 4, hcp: 3,  yards: 420 },
+  { hole: 1,  par: 4, hcp: 15, yards: 277 },
+  { hole: 2,  par: 5, hcp: 1,  yards: 533 },
+  { hole: 3,  par: 3, hcp: 5,  yards: 193 },
+  { hole: 4,  par: 3, hcp: 17, yards: 129 },
+  { hole: 5,  par: 5, hcp: 3,  yards: 455 },
+  { hole: 6,  par: 4, hcp: 9,  yards: 276 },
+  { hole: 7,  par: 3, hcp: 11, yards: 177 },
+  { hole: 8,  par: 5, hcp: 7,  yards: 488 },
+  { hole: 9,  par: 3, hcp: 13, yards: 210 },
+  { hole: 10, par: 4, hcp: 14, yards: 276 },
+  { hole: 11, par: 4, hcp: 6,  yards: 307 },
+  { hole: 12, par: 3, hcp: 12, yards: 159 },
+  { hole: 13, par: 4, hcp: 16, yards: 268 },
+  { hole: 14, par: 4, hcp: 10, yards: 247 },
+  { hole: 15, par: 5, hcp: 8,  yards: 451 },
+  { hole: 16, par: 3, hcp: 18, yards: 152 },
+  { hole: 17, par: 4, hcp: 2,  yards: 378 },
+  { hole: 18, par: 4, hcp: 4,  yards: 378 },
 ]
 
 export const TOTAL_HOLES = COURSE.length
