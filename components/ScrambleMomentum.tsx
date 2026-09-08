@@ -3,8 +3,8 @@
 import { SCRAMBLE_TEAMS, teamName } from '@/lib/scramble/config'
 import type { ProbSeries } from '@/lib/scramble/odds'
 
-// Win-probability lines for all five pairings — one colour per team, y is the
-// percent chance that team wins outright (the five always sum to 100%).
+// Win-probability lines, one colour per pairing. y is the percent chance that team
+// wins outright; the lines always sum to 100% across whatever teams are in the field.
 export default function ScrambleMomentum({ data }: { data: ProbSeries }) {
   const W = 400, CH = 190, AX = 20, PL = 28, PR = 10, TOP = 10, BOT = 10
   const H = CH + AX

@@ -112,57 +112,53 @@ export default function ScrambleScoreboard() {
         </div>
       )}
 
-      {/* Full scorecard */}
-      {anyStarted && (
-        <>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50 mt-6 mb-2 px-1">Scorecard</p>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="min-w-max">
-                <div className="flex bg-[#091540]">
-                  <div className="w-24 shrink-0 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/70 border-r border-white/10">Hole</div>
-                  {FRONT.map(h => (
-                    <div key={h.hole} className="w-7 shrink-0 py-1.5 text-center text-[10px] font-bold text-white/80 border-r border-white/10">{h.hole}</div>
-                  ))}
-                  <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a] border-r border-white/10">Out</div>
-                  {BACK.map(h => (
-                    <div key={h.hole} className="w-7 shrink-0 py-1.5 text-center text-[10px] font-bold text-white/80 border-r border-white/10">{h.hole}</div>
-                  ))}
-                  <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a] border-r border-white/10">In</div>
-                  <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a]">Tot</div>
-                </div>
-                <div className="flex border-t border-gray-100 bg-gray-50">
-                  <div className="w-24 shrink-0 px-2 py-1.5 text-[11px] font-semibold text-gray-500 border-r border-gray-200">Par</div>
-                  {FRONT.map(h => (
-                    <div key={h.hole} className="w-7 h-7 shrink-0 flex items-center justify-center text-[11px] text-gray-500 border-r border-gray-100">{h.par}</div>
-                  ))}
-                  <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600 border-r border-gray-200">{OUT_PAR}</div>
-                  {BACK.map(h => (
-                    <div key={h.hole} className="w-7 h-7 shrink-0 flex items-center justify-center text-[11px] text-gray-500 border-r border-gray-100">{h.par}</div>
-                  ))}
-                  <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600 border-r border-gray-200">{IN_PAR}</div>
-                  <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600">{COURSE_PAR}</div>
-                </div>
-                {board.map(r => {
-                  const s = splits(r.team.slug, map)
-                  return (
-                    <div key={r.team.slug} className="flex border-t border-gray-100">
-                      <div className="w-24 shrink-0 px-2 py-1.5 text-[11px] font-semibold text-[#091540] border-r border-gray-200 truncate">
-                        {teamName(r.team)}
-                      </div>
-                      {FRONT.map(h => holeCell(r.team.slug, h))}
-                      <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50 border-r border-gray-200">{s.out || '–'}</div>
-                      {BACK.map(h => holeCell(r.team.slug, h))}
-                      <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50 border-r border-gray-200">{s.in || '–'}</div>
-                      <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50">{s.total || '–'}</div>
-                    </div>
-                  )
-                })}
+      {/* Full scorecard — always shown, blank until scores come in */}
+      <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50 mt-6 mb-2 px-1">Scorecard</p>
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <div className="min-w-max">
+              <div className="flex bg-[#091540]">
+                <div className="w-24 shrink-0 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/70 border-r border-white/10">Hole</div>
+                {FRONT.map(h => (
+                  <div key={h.hole} className="w-7 shrink-0 py-1.5 text-center text-[10px] font-bold text-white/80 border-r border-white/10">{h.hole}</div>
+                ))}
+                <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a] border-r border-white/10">Out</div>
+                {BACK.map(h => (
+                  <div key={h.hole} className="w-7 shrink-0 py-1.5 text-center text-[10px] font-bold text-white/80 border-r border-white/10">{h.hole}</div>
+                ))}
+                <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a] border-r border-white/10">In</div>
+                <div className="w-9 shrink-0 py-1.5 text-center text-[10px] font-bold text-[#e8c96a]">Tot</div>
               </div>
+              <div className="flex border-t border-gray-100 bg-gray-50">
+                <div className="w-24 shrink-0 px-2 py-1.5 text-[11px] font-semibold text-gray-500 border-r border-gray-200">Par</div>
+                {FRONT.map(h => (
+                  <div key={h.hole} className="w-7 h-7 shrink-0 flex items-center justify-center text-[11px] text-gray-500 border-r border-gray-100">{h.par}</div>
+                ))}
+                <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600 border-r border-gray-200">{OUT_PAR}</div>
+                {BACK.map(h => (
+                  <div key={h.hole} className="w-7 h-7 shrink-0 flex items-center justify-center text-[11px] text-gray-500 border-r border-gray-100">{h.par}</div>
+                ))}
+                <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600 border-r border-gray-200">{IN_PAR}</div>
+                <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-gray-600">{COURSE_PAR}</div>
+              </div>
+              {board.map(r => {
+                const s = splits(r.team.slug, map)
+                return (
+                  <div key={r.team.slug} className="flex border-t border-gray-100">
+                    <div className="w-24 shrink-0 px-2 py-1.5 text-[11px] font-semibold text-[#091540] border-r border-gray-200 truncate">
+                      {teamName(r.team)}
+                    </div>
+                    {FRONT.map(h => holeCell(r.team.slug, h))}
+                    <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50 border-r border-gray-200">{s.out || '–'}</div>
+                    {BACK.map(h => holeCell(r.team.slug, h))}
+                    <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50 border-r border-gray-200">{s.in || '–'}</div>
+                    <div className="w-9 shrink-0 flex items-center justify-center text-[11px] font-bold text-[#091540] bg-gray-50">{s.total || '–'}</div>
+                  </div>
+                )
+              })}
             </div>
           </div>
-        </>
-      )}
+        </div>
 
       {/* Tee groups → score entry */}
       <p className="text-[10px] font-bold uppercase tracking-widest text-[#091540]/50 mt-6 mb-2 px-1">

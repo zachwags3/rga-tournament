@@ -1,4 +1,4 @@
--- Kickoff Classic (one-off 5-team scramble) — single table, isolated from the Cup schema.
+-- Kickoff Classic (one-off 4-team scramble) — single table, isolated from the Cup schema.
 -- Run this once in the Supabase SQL editor. To remove after the event: drop table scramble_scores;
 
 create table if not exists scramble_scores (

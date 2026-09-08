@@ -16,8 +16,9 @@ type PlayerInfo = {
 
 // Keyed by lowercased first name (matches the names stored on matches).
 export const PLAYERS: Record<string, PlayerInfo> = {
-  // Updated Sept 2026 for the Kickoff Classic — tiers and handicaps per Zach's
-  // current rankings. Form/adj nudges cleared; tier + handicap now drive the rating.
+  // Updated Sept 2026 — Zach's current RGA tiers and handicaps. Form/adj nudges
+  // cleared; tier + handicap now drive the rating. Pat and Mike withdrew from the
+  // Kickoff Classic field, but their ratings stay here for future events.
   pat: { hcp: 8.4, tier: 1 },
   jack: { hcp: 8.6, tier: 1 },
   zach: { hcp: 13.5, tier: 2 },
@@ -28,7 +29,7 @@ export const PLAYERS: Record<string, PlayerInfo> = {
   joe: { hcp: 23.3, tier: 4 },
   mike: { hcp: 25, tier: 4 },
   henry: { hcp: 28.3, tier: 5 },
-  // Not in the Sept 2026 ranking (not playing the Kickoff Classic) — left as-is.
+  // Not in the Sept 2026 ranking — left at their previous values.
   danny: { hcp: 21.8, tier: 3, form: -5, note: 'playing worse lately' },
   charlie: { hcp: 22.1, tier: 4 },
 }
