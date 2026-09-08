@@ -27,14 +27,14 @@ export type ScrambleTeam = {
   color: string // line colour on the momentum chart / dot on the board
 }
 
-// Draft order was Henry, Joe, Mike, Sam, Sean; picks came off Nate, Zach, Pat,
-// Jack, Mitch. Listed here in tee-time order. Displayed as "Captain & Partner".
+// Four teams: Mike and Pat withdrew, and since they were paired together the
+// field drops cleanly from 5 teams to 4. Tee times moved up to 7:30 and 7:40.
+// Listed in tee-time order. Displayed as "Captain & Partner".
 export const SCRAMBLE_TEAMS: ScrambleTeam[] = [
-  { slug: 'sam-jack',    captain: 'Sam',   partner: 'Jack',  teeTime: '7:40', color: '#7aa2ff' },
-  { slug: 'joe-zach',    captain: 'Joe',   partner: 'Zach',  teeTime: '7:40', color: '#e8c96a' },
-  { slug: 'henry-nate',  captain: 'Henry', partner: 'Nate',  teeTime: '7:50', color: '#5eead4' },
-  { slug: 'sean-mitch',  captain: 'Sean',  partner: 'Mitch', teeTime: '7:50', color: '#f9a8d4' },
-  { slug: 'mike-pat',    captain: 'Mike',  partner: 'Pat',   teeTime: '8:00', color: '#c4b5fd' },
+  { slug: 'sam-jack',    captain: 'Sam',   partner: 'Jack',  teeTime: '7:30', color: '#7aa2ff' },
+  { slug: 'joe-zach',    captain: 'Joe',   partner: 'Zach',  teeTime: '7:30', color: '#e8c96a' },
+  { slug: 'henry-nate',  captain: 'Henry', partner: 'Nate',  teeTime: '7:40', color: '#5eead4' },
+  { slug: 'sean-mitch',  captain: 'Sean',  partner: 'Mitch', teeTime: '7:40', color: '#f9a8d4' },
 ]
 
 export const teamName = (t: ScrambleTeam) => `${t.captain} & ${t.partner}`
