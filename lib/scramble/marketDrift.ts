@@ -5,7 +5,7 @@ import { SCRAMBLE_TEAMS, TEE_OFF } from './config'
 // anything real (no scores exist yet); it's manufactured variance that eases
 // back to exactly the true opening line at tee-off, so "opening odds" stays
 // honest once anyone actually starts playing.
-const WINDOW_HOURS = 84 // drift kicks in starting 3.5 days out from tee-off
+const WINDOW_HOURS = 96 // drift kicks in starting 4 days out from tee-off
 const TICK_HOURS = 3 // a new "line move" every few hours
 const STEP = 1.3 // typical per-tick move, in win% points
 const REVERSION = 0.65 // pulls the walk back toward 0 so it wanders instead of drifting away
