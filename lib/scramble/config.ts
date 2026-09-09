@@ -42,8 +42,8 @@ export type ScrambleTeam = {
 // Listed in tee-time order. Displayed as "Captain & Partner".
 export const SCRAMBLE_TEAMS: ScrambleTeam[] = [
   { slug: 'henry-jack', captain: 'Henry', partner: 'Jack',  teeTime: '7:30', color: '#7aa2ff', priorAdj: -1.31 },
-  { slug: 'joe-pat',    captain: 'Joe',   partner: 'Pat',   teeTime: '7:30', color: '#e8c96a', priorAdj: 0.04 },
-  { slug: 'zach-nate',  captain: 'Zach',  partner: 'Nate',  teeTime: '7:40', color: '#5eead4', priorAdj: 1.88 },
+  { slug: 'zach-nate',  captain: 'Zach',  partner: 'Nate',  teeTime: '7:30', color: '#5eead4', priorAdj: 1.88 },
+  { slug: 'joe-pat',    captain: 'Joe',   partner: 'Pat',   teeTime: '7:40', color: '#e8c96a', priorAdj: 0.04 },
   { slug: 'sean-mitch', captain: 'Sean',  partner: 'Mitch', teeTime: '7:40', color: '#f9a8d4', priorAdj: 0.06 },
 ]
 
