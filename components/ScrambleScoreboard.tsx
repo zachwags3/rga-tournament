@@ -74,7 +74,7 @@ export default function ScrambleScoreboard() {
           <span className="w-8 shrink-0">POS</span>
           <span className="flex-1 min-w-0">TEAM</span>
           <span className="w-11 shrink-0 text-center">THRU</span>
-          <span className="w-11 shrink-0 text-right">NET</span>
+          <span className="w-11 shrink-0 text-right">SCORE</span>
           <span className="w-9 shrink-0 text-right">TOT</span>
         </div>
         {loading ? (
@@ -87,22 +87,15 @@ export default function ScrambleScoreboard() {
               style={i === 0 && anyStarted ? { backgroundColor: '#fbfaf5' } : undefined}
             >
               <span className="w-8 shrink-0 text-sm font-semibold text-[#091540]">{anyStarted ? r.pos : '—'}</span>
-              <span className="flex-1 min-w-0 flex items-center gap-1.5">
-                <span className="text-sm font-semibold text-[#091540] truncate">{teamName(r.team)}</span>
-                {r.team.strokes > 0 && (
-                  <span className="shrink-0 text-[10px] font-bold text-[#8a6d1f] bg-[#f6ecc9] rounded px-1 py-0.5 leading-none">
-                    −{r.team.strokes}
-                  </span>
-                )}
-              </span>
+              <span className="flex-1 min-w-0 text-sm font-semibold text-[#091540] truncate">{teamName(r.team)}</span>
               <span className="w-11 shrink-0 text-center text-xs text-gray-500">
                 {r.complete ? 'F' : r.started ? r.thru : r.team.teeTime}
               </span>
               <span
                 className="w-11 shrink-0 text-right text-sm font-bold tabular-nums"
-                style={{ color: r.netToPar < 0 ? '#c0392b' : '#091540' }}
+                style={{ color: r.toPar < 0 ? '#c0392b' : '#091540' }}
               >
-                {r.started ? fmtToPar(r.netToPar) : '–'}
+                {r.started ? fmtToPar(r.toPar) : '–'}
               </span>
               <span className="w-9 shrink-0 text-right text-xs text-gray-600 tabular-nums">
                 {r.started ? r.strokes : '–'}
@@ -111,9 +104,6 @@ export default function ScrambleScoreboard() {
           ))
         )}
       </div>
-        <p className="bg-white text-[10px] text-[#091540]/40 text-center px-3 pb-2 pt-1">
-          Net scoring — handicap allowance shown beside each team. TOT is gross strokes.
-        </p>
       </div>
 
       {needsSetup && (

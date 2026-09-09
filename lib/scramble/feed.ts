@@ -1,4 +1,4 @@
-import { COURSE, SCRAMBLE_TEAMS, TOTAL_HOLES, parFor, strokesOnHole, teamName } from './config'
+import { COURSE, SCRAMBLE_TEAMS, TOTAL_HOLES, parFor, teamName } from './config'
 import { fmtToPar } from './scoring'
 
 export type ScrambleScoreRow = {
@@ -63,7 +63,7 @@ export function buildFeed(rows: ScrambleScoreRow[]): FeedPost[] {
       const at = Math.max(...mine.map(r => Date.parse(r.created_at)))
       posts.push({
         id: `fin-${t.slug}`, at, label: 'FINAL', tone: 'final',
-        text: `${teamName(t)} signed for ${s}, net ${fmtToPar(s - par - t.strokes)}.`,
+        text: `${teamName(t)} signed for ${s} (${fmtToPar(s - par)}).`,
       })
     }
   }
@@ -72,25 +72,22 @@ export function buildFeed(rows: ScrambleScoreRow[]): FeedPost[] {
   const strokesBy: Record<string, number> = {}
   const parBy: Record<string, number> = {}
   const playedBy: Record<string, number> = {}
-  const shotsBy: Record<string, number> = {}
-  const net = (slug: string) => strokesBy[slug] - parBy[slug] - (shotsBy[slug] ?? 0)
   let leader: string | null = null
   for (const r of scored) {
     strokesBy[r.team_slug] = (strokesBy[r.team_slug] ?? 0) + (r.strokes as number)
     parBy[r.team_slug] = (parBy[r.team_slug] ?? 0) + parFor(r.hole_number)
     playedBy[r.team_slug] = (playedBy[r.team_slug] ?? 0) + 1
-    const tm = SCRAMBLE_TEAMS.find(x => x.slug === r.team_slug)
-    if (tm) shotsBy[r.team_slug] = (shotsBy[r.team_slug] ?? 0) + strokesOnHole(tm, r.hole_number)
     const live = Object.keys(strokesBy).filter(s => playedBy[s] >= 3)
     if (live.length < 2) continue
-    const best = live.reduce((a, b) => (net(a) <= net(b) ? a : b))
-    const tied = live.filter(s => net(s) === net(best)).length > 1
+    const best = live.reduce((a, b) =>
+      strokesBy[a] - parBy[a] <= strokesBy[b] - parBy[b] ? a : b)
+    const tied = live.filter(s => strokesBy[s] - parBy[s] === strokesBy[best] - parBy[best]).length > 1
     if (!tied && best !== leader) {
       if (leader !== null) {
         posts.push({
           id: `lead-${best}-${r.hole_number}-${r.created_at}`,
           at: Date.parse(r.created_at), label: null, tone: 'plain',
-          text: `${nameOf(best)} take the lead at ${fmtToPar(net(best))}.`,
+          text: `${nameOf(best)} take the lead at ${fmtToPar(strokesBy[best] - parBy[best])}.`,
         })
       }
       leader = best

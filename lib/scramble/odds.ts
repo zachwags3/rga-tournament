@@ -21,7 +21,7 @@ export function pairRating(team: ScrambleTeam): number {
 
 // Pre-round expectation for a pair's 18-hole score relative to par.
 export function priorToPar(team: ScrambleTeam): number {
-  return BASE_TO_PAR - SLOPE * (pairRating(team) - REF_RATING)
+  return BASE_TO_PAR - SLOPE * (pairRating(team) - REF_RATING) + team.priorAdj
 }
 
 const erf = (x: number) => {
@@ -49,8 +49,7 @@ export function projections(rows: LeaderRow[]): TeamProjection[] {
     const rate = prior * (1 - w) + live * w
     return {
       slug: r.team.slug,
-      // Gross projection less the team's full handicap allowance.
-      mean: r.toPar + rate * remaining - r.team.strokes,
+      mean: r.toPar + rate * remaining,
       sd: remaining > 0 ? Math.max(0.4, HOLE_SD * Math.sqrt(remaining)) : 0.01,
     }
   })
