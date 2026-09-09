@@ -29,17 +29,18 @@ export type ScrambleTeam = {
   captain: string
   partner: string
   teeTime: string
-  color: string // line colour on the momentum chart / dot on the board
+  color: string   // line colour on the momentum chart / dot on the board
+  strokes: number // handicap allowance: shots taken off the gross total
 }
 
 // Four teams: Mike and Pat withdrew, and since they were paired together the
 // field drops cleanly from 5 teams to 4. Tee times moved up to 7:30 and 7:40.
 // Listed in tee-time order. Displayed as "Captain & Partner".
 export const SCRAMBLE_TEAMS: ScrambleTeam[] = [
-  { slug: 'sam-jack',    captain: 'Sam',   partner: 'Jack',  teeTime: '7:30', color: '#7aa2ff' },
-  { slug: 'joe-zach',    captain: 'Joe',   partner: 'Zach',  teeTime: '7:30', color: '#e8c96a' },
-  { slug: 'henry-nate',  captain: 'Henry', partner: 'Nate',  teeTime: '7:40', color: '#5eead4' },
-  { slug: 'sean-mitch',  captain: 'Sean',  partner: 'Mitch', teeTime: '7:40', color: '#f9a8d4' },
+  { slug: 'henry-jack', captain: 'Henry', partner: 'Jack',  teeTime: '7:30', color: '#7aa2ff', strokes: 4 },
+  { slug: 'joe-pat',    captain: 'Joe',   partner: 'Pat',   teeTime: '7:30', color: '#e8c96a', strokes: 2 },
+  { slug: 'zach-nate',  captain: 'Zach',  partner: 'Nate',  teeTime: '7:40', color: '#5eead4', strokes: 0 },
+  { slug: 'sean-mitch', captain: 'Sean',  partner: 'Mitch', teeTime: '7:40', color: '#f9a8d4', strokes: 2 },
 ]
 
 export const teamName = (t: ScrambleTeam) => `${t.captain} & ${t.partner}`
@@ -85,3 +86,14 @@ export const parFor = (hole: number) => COURSE.find(h => h.hole === hole)?.par ?
 // Cumulative par through N holes — used for to-par while a round is in progress.
 export const parThrough = (holes: number) =>
   COURSE.filter(h => h.hole <= holes).reduce((s, h) => s + h.par, 0)
+
+// A team receives its strokes on the hardest holes first, by stroke index — so a
+// 4-stroke team gets one shot on each hole with handicap rating 1 through 4. This
+// keeps the net leaderboard honest mid-round instead of only at the finish.
+export function strokesOnHole(team: ScrambleTeam, hole: number): number {
+  const h = COURSE.find(x => x.hole === hole)
+  if (!h) return 0
+  let given = h.hcp <= team.strokes ? 1 : 0
+  if (team.strokes > TOTAL_HOLES) given += h.hcp <= team.strokes - TOTAL_HOLES ? 1 : 0
+  return given
+}

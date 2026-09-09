@@ -1,4 +1,4 @@
-import { COURSE, SCRAMBLE_TEAMS, TOTAL_HOLES, parFor, type ScrambleTeam } from './config'
+import { COURSE, SCRAMBLE_TEAMS, TOTAL_HOLES, parFor, strokesOnHole, type ScrambleTeam } from './config'
 
 // One row per team per hole, as stored in Supabase.
 export type ScrambleScore = {
@@ -12,7 +12,9 @@ export type LeaderRow = {
   pos: string        // "1", "T2", or "—" before anyone starts
   strokes: number    // gross strokes over the holes actually played
   parPlayed: number  // par for exactly those holes
-  toPar: number
+  toPar: number      // gross to-par
+  shotsUsed: number  // handicap strokes received on the holes played so far
+  netToPar: number   // toPar - shotsUsed — what the leaderboard ranks on
   thru: number       // highest hole completed
   played: number     // count of holes completed
   started: boolean
@@ -46,12 +48,15 @@ export function buildLeaderboard(scores: ScrambleScore[]): LeaderRow[] {
     const strokes = mine.reduce((sum, s) => sum + (s.strokes ?? 0), 0)
     const parPlayed = mine.reduce((sum, s) => sum + parFor(s.hole_number), 0)
     const thru = mine.length ? Math.max(...mine.map(s => s.hole_number)) : 0
+    const shotsUsed = mine.reduce((sum, s) => sum + strokesOnHole(team, s.hole_number), 0)
     return {
       team,
       pos: '—',
       strokes,
       parPlayed,
       toPar: strokes - parPlayed,
+      shotsUsed,
+      netToPar: strokes - parPlayed - shotsUsed,
       thru,
       played: mine.length,
       started: mine.length > 0,
@@ -59,14 +64,14 @@ export function buildLeaderboard(scores: ScrambleScore[]): LeaderRow[] {
     }
   })
 
-  // Lowest to-par leads; ties broken by holes completed (further along shown first).
-  rows.sort((a, b) => a.toPar - b.toPar || b.played - a.played)
+  // Lowest NET to-par leads; ties broken by holes completed (further along first).
+  rows.sort((a, b) => a.netToPar - b.netToPar || b.played - a.played)
 
   // Positions, with T-prefix on ties (teams yet to start share the field's E).
   let i = 0
   while (i < rows.length) {
     let j = i
-    while (j + 1 < rows.length && rows[j + 1].toPar === rows[i].toPar) j++
+    while (j + 1 < rows.length && rows[j + 1].netToPar === rows[i].netToPar) j++
     const tied = j - i + 1
     for (let k = i; k <= j; k++) rows[k].pos = `${tied > 1 ? 'T' : ''}${i + 1}`
     i = j + 1

@@ -49,7 +49,8 @@ export function projections(rows: LeaderRow[]): TeamProjection[] {
     const rate = prior * (1 - w) + live * w
     return {
       slug: r.team.slug,
-      mean: r.toPar + rate * remaining,
+      // Gross projection less the team's full handicap allowance.
+      mean: r.toPar + rate * remaining - r.team.strokes,
       sd: remaining > 0 ? Math.max(0.4, HOLE_SD * Math.sqrt(remaining)) : 0.01,
     }
   })
