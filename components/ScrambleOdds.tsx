@@ -6,6 +6,7 @@ import { toAmerican } from '@/lib/odds'
 import { SCRAMBLE, teamName } from '@/lib/scramble/config'
 import { buildLeaderboard, fmtToPar, type ScrambleScore } from '@/lib/scramble/scoring'
 import { probabilitySeries, winProbabilities } from '@/lib/scramble/odds'
+import { applyDrift, driftHistory } from '@/lib/scramble/marketDrift'
 import ScrambleMomentum from './ScrambleMomentum'
 
 // Cap longshots at +5000 so a mathematically-buried team doesn't print an
@@ -17,6 +18,7 @@ type Row = ScrambleScore & { created_at: string }
 export default function ScrambleOdds() {
   const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
+  const [now, setNow] = useState(() => Date.now())
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -35,12 +37,27 @@ export default function ScrambleOdds() {
     return () => { supabase.removeChannel(channel) }
   }, [load])
 
+  // Re-check the market-drift tick every few minutes so the pre-round board
+  // keeps "moving" even if nobody triggers a re-render another way.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 5 * 60 * 1000)
+    return () => clearInterval(id)
+  }, [])
+
   const board = useMemo(() => buildLeaderboard(rows), [rows])
-  const probs = useMemo(() => winProbabilities(board), [board])
-  const series = useMemo(() => probabilitySeries(rows), [rows])
+  const anyStarted = board.some(r => r.started)
+  const baseProbs = useMemo(() => winProbabilities(board), [board])
+  const probs = useMemo(
+    () => (anyStarted ? baseProbs : applyDrift(baseProbs, now)),
+    [baseProbs, anyStarted, now]
+  )
+  // Pre-round, the chart shows the drift's wander from the start of its window
+  // up through now instead of the single "opening line" point.
+  const liveSeries = useMemo(() => probabilitySeries(rows), [rows])
+  const driftSeries = useMemo(() => driftHistory(baseProbs, now), [baseProbs, now])
+  const series = anyStarted ? liveSeries : driftSeries
 
   const ranked = [...board].sort((a, b) => (probs.get(b.team.slug) ?? 0) - (probs.get(a.team.slug) ?? 0))
-  const anyStarted = board.some(r => r.started)
 
   return (
     <div className="max-w-2xl mx-auto px-3 pb-12">
