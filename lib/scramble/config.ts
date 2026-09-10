@@ -37,14 +37,16 @@ export type ScrambleTeam = {
                     // instead of leaning on the model's raw rating gap.
 }
 
-// Four teams: Mike and Pat withdrew, and since they were paired together the
-// field drops cleanly from 5 teams to 4. Tee times moved up to 7:30 and 7:40.
+// Re-paired: Nate & Sean and Zach & Mitch swap partners; Henry & Jack and Joe &
+// Pat are unchanged. priorAdj re-solved against the live model so the opening
+// board again lands close to 25% each with real variance, matching the same
+// "evenly matched field" calibration as before (sums to exactly 100%).
 // Listed in tee-time order. Displayed as "Captain & Partner".
 export const SCRAMBLE_TEAMS: ScrambleTeam[] = [
-  { slug: 'henry-jack', captain: 'Henry', partner: 'Jack',  teeTime: '7:30', color: '#7aa2ff', priorAdj: -1.31 },
-  { slug: 'zach-nate',  captain: 'Zach',  partner: 'Nate',  teeTime: '7:30', color: '#5eead4', priorAdj: 1.88 },
-  { slug: 'joe-pat',    captain: 'Joe',   partner: 'Pat',   teeTime: '7:40', color: '#e8c96a', priorAdj: 0.04 },
-  { slug: 'sean-mitch', captain: 'Sean',  partner: 'Mitch', teeTime: '7:40', color: '#f9a8d4', priorAdj: 0.06 },
+  { slug: 'nate-sean',  captain: 'Nate',  partner: 'Sean',  teeTime: '7:30', color: '#5eead4', priorAdj: 0.27 },
+  { slug: 'zach-mitch', captain: 'Zach',  partner: 'Mitch', teeTime: '7:30', color: '#f9a8d4', priorAdj: 1.43 },
+  { slug: 'henry-jack', captain: 'Henry', partner: 'Jack',  teeTime: '7:40', color: '#7aa2ff', priorAdj: -1.49 },
+  { slug: 'joe-pat',    captain: 'Joe',   partner: 'Pat',   teeTime: '7:40', color: '#e8c96a', priorAdj: -0.21 },
 ]
 
 export const teamName = (t: ScrambleTeam) => `${t.captain} & ${t.partner}`
