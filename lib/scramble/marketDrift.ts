@@ -5,13 +5,17 @@ import { SCRAMBLE_TEAMS, TEE_OFF } from './config'
 // anything real (no scores exist yet); it's manufactured variance that eases
 // back to exactly the true opening line at tee-off, so "opening odds" stays
 // honest once anyone actually starts playing.
-const WINDOW_HOURS = 108 // drift kicks in starting 4.5 days out from tee-off
-const TICK_HOURS = 3 // a new "line move" every few hours
-const STEP = 1.3 // typical per-tick move, in win% points
+const TICK_HOURS = 1 // the board re-ticks every hour, right up to tee-off
+const REFERENCE_HOURS_BEFORE_TEEOFF = 240 // a fixed, far-past anchor purely so the
+  // walk below is already "wandering" (not freshly zeroed) by the time anyone looks —
+  // it's never itself displayed.
+const HISTORY_TICKS = 48 // how many hourly ticks the Momentum chart shows as recent history
+const SETTLE_HOURS = 6 // the board "closes": eases to the true line in the final hours before tee-off
+const STEP = 1.6 // typical per-tick move, in win% points
 const REVERSION = 0.65 // pulls the walk back toward 0 so it wanders instead of drifting away
 
-export const TICKS = Math.round(WINDOW_HOURS / TICK_HOURS)
-const ANCHOR_MS = Date.parse(TEE_OFF) - WINDOW_HOURS * 3600_000
+const TEE_OFF_MS = Date.parse(TEE_OFF)
+const REFERENCE_MS = TEE_OFF_MS - REFERENCE_HOURS_BEFORE_TEEOFF * 3600_000
 
 // Deterministic hash -> [0,1). Every viewer sees the same "random" line at the
 // same moment instead of each browser rolling its own.
@@ -27,14 +31,16 @@ function seeded(seed: string): number {
   return (h >>> 0) / 4294967296
 }
 
-export function tickAt(atMs: number): number {
-  return Math.max(0, Math.min(TICKS, Math.floor((atMs - ANCHOR_MS) / (TICK_HOURS * 3600_000))))
+function tickAt(atMs: number): number {
+  return Math.max(0, Math.floor((atMs - REFERENCE_MS) / (TICK_HOURS * 3600_000)))
 }
 
-// Zero at both ends of the window (true line opens the drift, drift eases back
-// to that same true line right at tee-off) and largest mid-week.
-function envelope(tick: number): number {
-  return Math.sin(Math.PI * (tick / TICKS))
+// 1 (full strength) until the final SETTLE_HOURS before tee-off, then eases to
+// exactly 0 right at tee-off — the board "closes" onto the true opening line.
+function envelopeAtTick(tick: number): number {
+  const hoursUntilTeeOff = REFERENCE_HOURS_BEFORE_TEEOFF - tick * TICK_HOURS
+  if (hoursUntilTeeOff <= 0) return 0
+  return Math.min(1, hoursUntilTeeOff / SETTLE_HOURS)
 }
 
 // Per-team drift (win% points) for tick 0..maxTick, as a mildly mean-reverting
@@ -50,7 +56,7 @@ function driftSeries(maxTick: number): Record<string, number>[] {
       walk[t.slug] = walk[t.slug] * REVERSION + step
     }
     const mean = SCRAMBLE_TEAMS.reduce((s, t) => s + walk[t.slug], 0) / SCRAMBLE_TEAMS.length
-    const env = envelope(tick)
+    const env = envelopeAtTick(tick)
     const centered: Record<string, number> = {}
     for (const t of SCRAMBLE_TEAMS) centered[t.slug] = (walk[t.slug] - mean) * env
     out.push(centered)
@@ -78,14 +84,16 @@ export function applyDrift(base: Map<string, number>, atMs: number = Date.now())
   return bumpAndRenormalize(base, drift)
 }
 
-// The full pre-round drift history from the start of the window through `atMs`,
-// one point per tick — feeds the Momentum chart's pre-round segment. Shaped to
-// drop straight into ScrambleMomentum in place of the live probabilitySeries.
+// The trailing HISTORY_TICKS (48) hourly ticks through `atMs` — feeds the
+// Momentum chart's pre-round segment, so it reads as "already been moving for
+// the last two days" rather than starting flat. Shaped to drop straight into
+// ScrambleMomentum in place of the live probabilitySeries.
 export function driftHistory(
   base: Map<string, number>,
   atMs: number = Date.now()
 ): { holeAt: number[]; series: Record<string, number[]> } {
-  const points = driftSeries(tickAt(atMs)).map(drift => bumpAndRenormalize(base, drift))
+  const maxTick = tickAt(atMs)
+  const points = driftSeries(maxTick).slice(-HISTORY_TICKS).map(drift => bumpAndRenormalize(base, drift))
   const series: Record<string, number[]> = {}
   for (const t of SCRAMBLE_TEAMS) series[t.slug] = points.map(p => (p.get(t.slug) ?? 0) * 100)
   return { holeAt: points.map(() => 0), series }
